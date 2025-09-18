@@ -14,13 +14,13 @@ export class TestCaseService {
   constructor(
     @InjectRepository(TestCase)
     private testCaseRepository: Repository<TestCase>,
-  ) {}
+  ) { }
 
   async create(createTestCaseDto: CreateTestCaseDto): Promise<TestCase> {
     try {
       // Generate embedding for the test case
       const embedding = await this.generateEmbedding(createTestCaseDto);
-      
+
       const testCase = this.testCaseRepository.create({
         ...createTestCaseDto,
         embedding: JSON.stringify(embedding),
@@ -36,9 +36,11 @@ export class TestCaseService {
   }
 
   async findAll(): Promise<TestCase[]> {
-    return await this.testCaseRepository.find({
+    const testCases = await this.testCaseRepository.find({
       order: { createdAt: 'DESC' },
     });
+    // Remove embedding from each test case
+    return testCases.map(({ embedding, ...rest }) => rest);
   }
 
   async findOne(id: string): Promise<TestCase> {
@@ -46,16 +48,18 @@ export class TestCaseService {
     if (!testCase) {
       throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
     }
-    return testCase;
+    // Remove embedding from returned test case
+    const { embedding, ...rest } = testCase;
+    return rest;
   }
 
   async update(id: string, updateTestCaseDto: UpdateTestCaseDto): Promise<TestCase> {
     const testCase = await this.findOne(id);
-    
+
     try {
       // Generate new embedding if content changed
       const embedding = await this.generateEmbedding(updateTestCaseDto);
-      
+
       Object.assign(testCase, updateTestCaseDto, {
         embedding: JSON.stringify(embedding),
       });
@@ -98,8 +102,8 @@ export class TestCaseService {
       const text = [
         testCaseData.name,
         testCaseData.description,
-        testCaseData.expectedResult,
-        testCaseData.steps?.map(step => `${step.step} -> ${step.expectedResult}`).join(' '),
+        // testCaseData.expectedResult,
+        // testCaseData.steps?.map(step => `${step.step} -> ${step.expectedResult}`).join(' '),
         testCaseData.tags?.join(' '),
       ].filter(Boolean).join(' ');
 

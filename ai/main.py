@@ -39,8 +39,8 @@ class SearchRequest(BaseModel):
     limit: int = Field(default=10, ge=1, le=100)
 
 class SearchResult(BaseModel):
-    testCase: dict
     similarity: float
+    testCase: dict
 
 class SearchResponse(BaseModel):
     results: List[SearchResult]
@@ -152,8 +152,8 @@ async def semantic_search(request: SearchRequest):
                     }
                     
                     results.append(SearchResult(
-                        testCase=test_case_data,
-                        similarity=float(similarity)
+                        similarity=float(similarity),
+                        testCase=test_case_data
                     ))
                     
             except (json.JSONDecodeError, KeyError) as e:
