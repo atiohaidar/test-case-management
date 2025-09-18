@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: testcase_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: testcase_management
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - testcase_network
+    restart: unless-stopped
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: testcase_backend
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: password
+      DB_DATABASE: testcase_management
+      AI_SERVICE_URL: http://ai:8000
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - ai
+    networks:
+      - testcase_network
+    restart: unless-stopped
+
+  # Python AI Service
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    container_name: testcase_ai
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: password
+      DB_DATABASE: testcase_management
+      HOST: 0.0.0.0
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    networks:
+      - testcase_network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  testcase_network:
+    driver: bridge
