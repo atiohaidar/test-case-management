@@ -1,4 +1,3 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum TestCaseType {
@@ -17,55 +16,50 @@ export interface TestStep {
   expectedResult: string;
 }
 
-@Entity('testcases')
-export class TestCase {
+// DTO classes for Swagger documentation
+export class TestCaseDto {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
-  @Column()
   name: string;
 
   @ApiProperty()
-  @Column('text')
   description: string;
 
   @ApiProperty({ enum: TestCaseType })
-  @Column({
-    type: 'enum',
-    enum: TestCaseType,
-  })
   type: TestCaseType;
 
   @ApiProperty({ enum: TestCasePriority })
-  @Column({
-    type: 'enum',
-    enum: TestCasePriority,
-  })
   priority: TestCasePriority;
 
   @ApiProperty({ type: 'object', isArray: true })
-  @Column('json')
   steps: TestStep[];
 
   @ApiProperty()
-  @Column('text')
   expectedResult: string;
 
   @ApiProperty({ type: [String] })
-  @Column('json')
   tags: string[];
 
   @ApiProperty()
-  @Column('text', { nullable: true })
-  embedding?: string;
-
-  @ApiProperty()
-  @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty()
-  @UpdateDateColumn()
+  updatedAt: Date;
+}
+
+// This interface mirrors the Prisma TestCase model for API documentation
+export interface TestCase {
+  id: string;
+  name: string;
+  description: string;
+  type: TestCaseType;
+  priority: TestCasePriority;
+  steps: TestStep[];
+  expectedResult: string;
+  tags: string[];
+  embedding?: string;
+  createdAt: Date;
   updatedAt: Date;
 }

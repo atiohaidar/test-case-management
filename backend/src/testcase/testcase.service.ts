@@ -1,8 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import axios from 'axios';
-import { TestCase } from './entities/testcase.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTestCaseDto } from './dto/create-testcase.dto';
 import { UpdateTestCaseDto } from './dto/update-testcase.dto';
 import { SearchTestCaseDto, SearchResultDto } from './dto/search-testcase.dto';
@@ -12,21 +10,30 @@ export class TestCaseService {
   private readonly aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
   constructor(
-    @InjectRepository(TestCase)
-    private testCaseRepository: Repository<TestCase>,
+    private prisma: PrismaService,
   ) { }
 
-  async create(createTestCaseDto: CreateTestCaseDto): Promise<TestCase> {
+  async create(createTestCaseDto: CreateTestCaseDto) {
     try {
       // Generate embedding for the test case
       const embedding = await this.generateEmbedding(createTestCaseDto);
 
-      const testCase = this.testCaseRepository.create({
-        ...createTestCaseDto,
-        embedding: JSON.stringify(embedding),
+      const testCase = await this.prisma.testCase.create({
+        data: {
+          name: createTestCaseDto.name,
+          description: createTestCaseDto.description,
+          type: createTestCaseDto.type,
+          priority: createTestCaseDto.priority,
+          steps: createTestCaseDto.steps as any,
+          expectedResult: createTestCaseDto.expectedResult,
+          tags: createTestCaseDto.tags as any,
+          embedding: JSON.stringify(embedding),
+        },
       });
 
-      return await this.testCaseRepository.save(testCase);
+      // Remove embedding from returned test case
+      const { embedding: _, ...rest } = testCase;
+      return rest;
     } catch (error) {
       throw new HttpException(
         'Failed to create test case',
@@ -35,16 +42,16 @@ export class TestCaseService {
     }
   }
 
-  async findAll(): Promise<TestCase[]> {
-    const testCases = await this.testCaseRepository.find({
-      order: { createdAt: 'DESC' },
+  async findAll() {
+    const testCases = await this.prisma.testCase.findMany({
+      orderBy: { createdAt: 'desc' },
     });
     // Remove embedding from each test case
     return testCases.map(({ embedding, ...rest }) => rest);
   }
 
-  async findOne(id: string): Promise<TestCase> {
-    const testCase = await this.testCaseRepository.findOne({ where: { id } });
+  async findOne(id: string) {
+    const testCase = await this.prisma.testCase.findUnique({ where: { id } });
     if (!testCase) {
       throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
     }
@@ -53,18 +60,34 @@ export class TestCaseService {
     return rest;
   }
 
-  async update(id: string, updateTestCaseDto: UpdateTestCaseDto): Promise<TestCase> {
-    const testCase = await this.findOne(id);
+  async update(id: string, updateTestCaseDto: UpdateTestCaseDto) {
+    // Check if test case exists
+    const existingTestCase = await this.prisma.testCase.findUnique({ where: { id } });
+    if (!existingTestCase) {
+      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+    }
 
     try {
       // Generate new embedding if content changed
       const embedding = await this.generateEmbedding(updateTestCaseDto);
 
-      Object.assign(testCase, updateTestCaseDto, {
-        embedding: JSON.stringify(embedding),
+      const updatedTestCase = await this.prisma.testCase.update({
+        where: { id },
+        data: {
+          ...(updateTestCaseDto.name && { name: updateTestCaseDto.name }),
+          ...(updateTestCaseDto.description && { description: updateTestCaseDto.description }),
+          ...(updateTestCaseDto.type && { type: updateTestCaseDto.type }),
+          ...(updateTestCaseDto.priority && { priority: updateTestCaseDto.priority }),
+          ...(updateTestCaseDto.steps && { steps: updateTestCaseDto.steps as any }),
+          ...(updateTestCaseDto.expectedResult && { expectedResult: updateTestCaseDto.expectedResult }),
+          ...(updateTestCaseDto.tags && { tags: updateTestCaseDto.tags as any }),
+          embedding: JSON.stringify(embedding),
+        },
       });
 
-      return await this.testCaseRepository.save(testCase);
+      // Remove embedding from returned test case
+      const { embedding: _, ...rest } = updatedTestCase;
+      return rest;
     } catch (error) {
       throw new HttpException(
         'Failed to update test case',
@@ -74,8 +97,13 @@ export class TestCaseService {
   }
 
   async remove(id: string): Promise<void> {
-    const testCase = await this.findOne(id);
-    await this.testCaseRepository.remove(testCase);
+    // Check if test case exists
+    const existingTestCase = await this.prisma.testCase.findUnique({ where: { id } });
+    if (!existingTestCase) {
+      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.prisma.testCase.delete({ where: { id } });
   }
 
   async search(searchDto: SearchTestCaseDto): Promise<SearchResultDto[]> {
