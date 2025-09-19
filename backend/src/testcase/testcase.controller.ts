@@ -57,6 +57,21 @@ export class TestCaseController {
     return this.testCaseService.generateTestCaseWithAI(generateDto);
   }
 
+  @Post('generate-and-save-with-ai')
+  @ApiOperation({ 
+    summary: 'Generate and save a test case using AI with optional RAG', 
+    description: 'Generate test case with AI and automatically save to database. Supports RAG for better context-aware generation.'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'AI-generated test case created and saved successfully',
+    type: TestCaseDto
+  })
+  @ApiResponse({ status: 500, description: 'AI service unavailable or API key not configured' })
+  async generateAndSaveWithAI(@Body() generateDto: GenerateTestCaseWithAIDto) {
+    return this.testCaseService.generateAndSaveTestCaseWithAI(generateDto);
+  }
+
   @Get(':id/with-reference')
   @ApiOperation({ summary: 'Get a test case with reference information' })
   @ApiResponse({ status: 200, description: 'Test case with reference info found', type: TestCaseWithReferenceDto })

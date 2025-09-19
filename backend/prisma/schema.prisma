@@ -35,16 +35,36 @@ model TestCase {
   expectedResult String            @db.Text
   tags           Json
   embedding      String?           @db.Text
-  referenceId    String?           // ID test case yang dijadikan referensi
+  referenceId    String?           // Backward compatibility - single reference
   
   // AI Generation Metadata
   aiGenerated    Boolean           @default(false)  // Apakah dibuat dengan bantuan AI
   originalPrompt String?           @db.Text         // Prompt asli yang digunakan untuk AI generation
   aiConfidence   Float?                             // Confidence score dari AI (0-1)
   aiSuggestions  String?           @db.Text         // Saran dari AI untuk improvement
+  aiGenerationMethod String?                        // "pure_ai" | "rag" | null
   
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
+  // Relations for multiple references
+  references     TestCaseReference[] @relation("SourceTestCase")
+  referencedBy   TestCaseReference[] @relation("TargetTestCase")
+
   @@map("testcases")
+}
+
+model TestCaseReference {
+  id               String    @id @default(cuid())
+  sourceId         String    // Test case yang dibuat
+  targetId         String    // Test case yang dijadikan referensi
+  similarityScore  Float?    // Similarity score dari RAG (0-1)
+  referenceType    String    // "manual" | "rag_retrieval"
+  createdAt        DateTime  @default(now())
+
+  source           TestCase  @relation("SourceTestCase", fields: [sourceId], references: [id], onDelete: Cascade)
+  target           TestCase  @relation("TargetTestCase", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId])
+  @@map("testcase_references")
 }

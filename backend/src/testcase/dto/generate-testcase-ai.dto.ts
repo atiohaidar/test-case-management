@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsBoolean, IsNumber, IsInt, Min, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TestCaseType, TestCasePriority } from '../entities/testcase.entity';
 
@@ -28,6 +28,50 @@ export class GenerateTestCaseWithAIDto {
     @IsEnum(TestCasePriority)
     @IsOptional()
     preferredPriority?: TestCasePriority;
+
+    // RAG Parameters
+    @ApiPropertyOptional({ 
+        description: 'Aktifkan/nonaktifkan RAG (Retrieval-Augmented Generation)',
+        default: true
+    })
+    @IsBoolean()
+    @IsOptional()
+    useRAG?: boolean = true;
+
+    @ApiPropertyOptional({ 
+        description: 'Threshold similarity minimum untuk RAG (0-1)',
+        minimum: 0,
+        maximum: 1,
+        default: 0.7
+    })
+    @IsNumber()
+    @Min(0)
+    @Max(1)
+    @IsOptional()
+    ragSimilarityThreshold?: number = 0.7;
+
+    @ApiPropertyOptional({ 
+        description: 'Maksimal jumlah referensi test case untuk RAG',
+        minimum: 1,
+        maximum: 10,
+        default: 3
+    })
+    @IsInt()
+    @Min(1)
+    @Max(10)
+    @IsOptional()
+    maxRAGReferences?: number = 3;
+}
+
+export class RAGReferenceDto {
+    @ApiProperty({ description: 'ID test case yang dijadikan referensi' })
+    testCaseId: string;
+
+    @ApiProperty({ description: 'Similarity score dengan prompt (0-1)' })
+    similarity: number;
+
+    @ApiProperty({ description: 'Data test case referensi' })
+    testCase: any;
 }
 
 export class AIGeneratedTestCaseResponseDto {
@@ -76,4 +120,17 @@ export class AIGeneratedTestCaseResponseDto {
 
     @ApiProperty({ description: 'Saran dari AI untuk improvement' })
     aiSuggestions?: string;
+
+    // RAG Metadata
+    @ApiProperty({ 
+        description: 'Metode AI generation yang digunakan',
+        enum: ['pure_ai', 'rag']
+    })
+    aiGenerationMethod: string;
+
+    @ApiProperty({ 
+        type: [RAGReferenceDto],
+        description: 'Referensi test case yang digunakan dalam RAG'
+    })
+    ragReferences: RAGReferenceDto[];
 }

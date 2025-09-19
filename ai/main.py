@@ -59,11 +59,20 @@ class TestStep(BaseModel):
     step: str
     expectedResult: str
 
+class RAGReference(BaseModel):
+    testCaseId: str
+    similarity: float
+    testCase: dict
+
 class GenerateTestCaseRequest(BaseModel):
     prompt: str
     context: Optional[str] = None
     preferredType: Optional[str] = None
     preferredPriority: Optional[str] = None
+    # RAG Parameters
+    useRAG: bool = Field(default=True, description="Enable/disable RAG retrieval")
+    ragSimilarityThreshold: float = Field(default=0.7, ge=0.0, le=1.0, description="Minimum similarity threshold for RAG")
+    maxRAGReferences: int = Field(default=3, ge=1, le=10, description="Maximum number of RAG references")
 
 class GenerateTestCaseResponse(BaseModel):
     name: str
@@ -77,6 +86,9 @@ class GenerateTestCaseResponse(BaseModel):
     aiGenerated: bool
     confidence: float
     aiSuggestions: Optional[str] = None
+    # RAG Metadata
+    aiGenerationMethod: str  # "pure_ai" | "rag"
+    ragReferences: List[RAGReference] = []
 
 class DatabaseConnection:
     def __init__(self):
@@ -207,7 +219,7 @@ async def semantic_search(request: SearchRequest):
 
 @app.post("/generate-test-case", response_model=GenerateTestCaseResponse)
 async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
-    """Generate a test case using Gemini AI"""
+    """Generate a test case using Gemini AI with optional RAG"""
     if not gemini_api_key:
         raise HTTPException(
             status_code=500, 
@@ -215,40 +227,56 @@ async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
         )
     
     try:
+        # Initialize variables for RAG
+        rag_references = []
+        enhanced_prompt = request.prompt
+        generation_method = "pure_ai"
+        
+        # Perform RAG if enabled
+        if request.useRAG:
+            logger.info(f"Performing RAG retrieval for prompt: {request.prompt[:50]}...")
+            
+            try:
+                # Perform semantic search for relevant test cases
+                search_request = SearchRequest(
+                    query=request.prompt,
+                    min_similarity=request.ragSimilarityThreshold,
+                    limit=request.maxRAGReferences
+                )
+                
+                search_results = await semantic_search(search_request)
+                
+                if search_results:
+                    generation_method = "rag"
+                    
+                    # Convert search results to RAG references
+                    for result in search_results:
+                        rag_references.append(RAGReference(
+                            testCaseId=result.testCase['id'],
+                            similarity=result.similarity,
+                            testCase=result.testCase
+                        ))
+                    
+                    # Format RAG context for AI prompt
+                    rag_context = await format_rag_context(rag_references)
+                    enhanced_prompt = f"{request.prompt}\n\n{rag_context}"
+                    
+                    logger.info(f"Found {len(rag_references)} relevant test cases for RAG")
+                else:
+                    logger.info("No relevant test cases found for RAG, using pure AI generation")
+                    
+            except Exception as rag_error:
+                logger.warning(f"RAG retrieval failed: {rag_error}, falling back to pure AI")
+                # Continue with pure AI if RAG fails
+        
         # Initialize Gemini model
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Build the prompt for AI generation
-        system_prompt = """You are a professional test case designer. Generate a detailed test case based on the user's request.
-
-Your response MUST be a valid JSON object with the following structure:
-{
-  "name": "string - Clear and descriptive test case name",
-  "description": "string - Detailed description of what this test case validates",
-  "type": "positive|negative",
-  "priority": "low|medium|high",
-  "steps": [
-    {
-      "step": "string - Clear action to perform",
-      "expectedResult": "string - Expected outcome of this step"
-    }
-  ],
-  "expectedResult": "string - Final expected result of the entire test",
-  "tags": ["string array - relevant tags"],
-  "confidence": number between 0-1,
-  "aiSuggestions": "string - optional suggestions for improvement"
-}
-
-Rules:
-1. Generate realistic and practical test cases
-2. Include detailed steps that are actionable
-3. Use appropriate test case types and priorities
-4. Provide relevant tags for categorization
-5. Give confidence score based on prompt clarity
-6. Response must be valid JSON only, no additional text
-7. If user is using any language other than English, the values in JSON should use that language (for example Bahasa Indonesia)"""
-
-        user_prompt = f"Generate a test case for: {request.prompt}"
+        # Build the system prompt (enhanced for RAG)
+        system_prompt = await build_system_prompt(generation_method == "rag")
+        
+        # Build user prompt
+        user_prompt = f"Generate a test case for: {enhanced_prompt}"
         
         if request.context:
             user_prompt += f"\n\nAdditional context: {request.context}"
@@ -308,10 +336,12 @@ Rules:
             originalPrompt=request.prompt,
             aiGenerated=True,
             confidence=ai_response.get('confidence', 0.8),
-            aiSuggestions=ai_response.get('aiSuggestions')
+            aiSuggestions=ai_response.get('aiSuggestions'),
+            aiGenerationMethod=generation_method,
+            ragReferences=rag_references
         )
 
-        logger.info(f"Successfully generated test case for prompt: {request.prompt}")
+        logger.info(f"Successfully generated test case using {generation_method} for prompt: {request.prompt}")
         return response_data
 
     except Exception as e:
@@ -320,6 +350,77 @@ Rules:
             status_code=503,
             detail="Failed to generate test case with AI"
         )
+
+async def format_rag_context(rag_references: List[RAGReference]) -> str:
+    """Format RAG references into context for AI prompt"""
+    if not rag_references:
+        return ""
+    
+    context = "Berikut adalah contoh test case yang relevan sebagai referensi:\n\n"
+    
+    for i, ref in enumerate(rag_references, 1):
+        tc = ref.testCase
+        context += f"=== Contoh {i} (Similarity: {ref.similarity:.2f}) ===\n"
+        context += f"Nama: {tc.get('name', 'N/A')}\n"
+        context += f"Deskripsi: {tc.get('description', 'N/A')}\n"
+        context += f"Tipe: {tc.get('type', 'N/A')}\n"
+        context += f"Prioritas: {tc.get('priority', 'N/A')}\n"
+        
+        if tc.get('steps') and isinstance(tc['steps'], list):
+            context += "Langkah-langkah:\n"
+            for j, step in enumerate(tc['steps'], 1):
+                if isinstance(step, dict):
+                    context += f"  {j}. {step.get('step', 'N/A')} -> {step.get('expectedResult', 'N/A')}\n"
+        
+        context += f"Expected Result: {tc.get('expectedResult', 'N/A')}\n"
+        
+        if tc.get('tags') and isinstance(tc['tags'], list):
+            context += f"Tags: {', '.join(tc['tags'])}\n"
+        
+        context += "\n"
+    
+    context += "Gunakan contoh-contoh di atas sebagai referensi untuk membuat test case yang konsisten dan berkualitas.\n"
+    return context
+
+async def build_system_prompt(has_rag_context: bool = False) -> str:
+    """Build system prompt for AI generation"""
+    base_prompt = """You are a professional test case designer. Generate a detailed test case based on the user's request.
+
+Your response MUST be a valid JSON object with the following structure:
+{
+  "name": "string - Clear and descriptive test case name",
+  "description": "string - Detailed description of what this test case validates",
+  "type": "positive|negative",
+  "priority": "low|medium|high",
+  "steps": [
+    {
+      "step": "string - Clear action to perform",
+      "expectedResult": "string - Expected outcome of this step"
+    }
+  ],
+  "expectedResult": "string - Final expected result of the entire test",
+  "tags": ["string array - relevant tags"],
+  "confidence": number between 0-1,
+  "aiSuggestions": "string - optional suggestions for improvement"
+}
+
+Rules:
+1. Generate realistic and practical test cases
+2. Include detailed steps that are actionable
+3. Use appropriate test case types and priorities
+4. Provide relevant tags for categorization
+5. Give confidence score based on prompt clarity
+6. Response must be valid JSON only, no additional text
+7. If user is using any language other than English, the values in JSON should use that language (for example Bahasa Indonesia)"""
+
+    if has_rag_context:
+        base_prompt += """
+8. IMPORTANT: Use the provided example test cases as references for consistency
+9. Follow similar patterns, naming conventions, and structures from the examples
+10. Ensure your generated test case complements rather than duplicates the examples
+11. Maintain quality and detail level similar to the reference examples"""
+
+    return base_prompt
 
 @app.get("/stats")
 async def get_statistics():
