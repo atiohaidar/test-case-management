@@ -10,6 +10,7 @@ import json
 import os
 from dotenv import load_dotenv
 import logging
+import google.generativeai as genai
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +27,14 @@ app = FastAPI(
 
 # Initialize the sentence transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Initialize Gemini AI
+gemini_api_key = os.getenv('GEMINI_API_KEY')
+if gemini_api_key:
+    genai.configure(api_key=gemini_api_key)
+    logger.info("Gemini AI configured successfully")
+else:
+    logger.warning("Gemini API key not found - AI generation will not be available")
 
 class EmbeddingRequest(BaseModel):
     text: str
@@ -44,6 +53,30 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     results: List[SearchResult]
+
+# AI Generation Models
+class TestStep(BaseModel):
+    step: str
+    expectedResult: str
+
+class GenerateTestCaseRequest(BaseModel):
+    prompt: str
+    context: Optional[str] = None
+    preferredType: Optional[str] = None
+    preferredPriority: Optional[str] = None
+
+class GenerateTestCaseResponse(BaseModel):
+    name: str
+    description: str
+    type: str
+    priority: str
+    steps: List[TestStep]
+    expectedResult: str
+    tags: List[str]
+    originalPrompt: str
+    aiGenerated: bool
+    confidence: float
+    aiSuggestions: Optional[str] = None
 
 class DatabaseConnection:
     def __init__(self):
@@ -171,6 +204,122 @@ async def semantic_search(request: SearchRequest):
     except Exception as e:
         logger.error(f"Search error: {e}")
         raise HTTPException(status_code=500, detail="Failed to perform semantic search")
+
+@app.post("/generate-test-case", response_model=GenerateTestCaseResponse)
+async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
+    """Generate a test case using Gemini AI"""
+    if not gemini_api_key:
+        raise HTTPException(
+            status_code=500, 
+            detail="Gemini API key is not configured"
+        )
+    
+    try:
+        # Initialize Gemini model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Build the prompt for AI generation
+        system_prompt = """You are a professional test case designer. Generate a detailed test case based on the user's request.
+
+Your response MUST be a valid JSON object with the following structure:
+{
+  "name": "string - Clear and descriptive test case name",
+  "description": "string - Detailed description of what this test case validates",
+  "type": "positive|negative",
+  "priority": "low|medium|high",
+  "steps": [
+    {
+      "step": "string - Clear action to perform",
+      "expectedResult": "string - Expected outcome of this step"
+    }
+  ],
+  "expectedResult": "string - Final expected result of the entire test",
+  "tags": ["string array - relevant tags"],
+  "confidence": number between 0-1,
+  "aiSuggestions": "string - optional suggestions for improvement"
+}
+
+Rules:
+1. Generate realistic and practical test cases
+2. Include detailed steps that are actionable
+3. Use appropriate test case types and priorities
+4. Provide relevant tags for categorization
+5. Give confidence score based on prompt clarity
+6. Response must be valid JSON only, no additional text
+7. If user is using any language other than English, the values in JSON should use that language (for example Bahasa Indonesia)"""
+
+        user_prompt = f"Generate a test case for: {request.prompt}"
+        
+        if request.context:
+            user_prompt += f"\n\nAdditional context: {request.context}"
+        
+        if request.preferredType:
+            user_prompt += f"\n\nPreferred type: {request.preferredType}"
+        
+        if request.preferredPriority:
+            user_prompt += f"\n\nPreferred priority: {request.preferredPriority}"
+
+        # Generate content
+        response = model.generate_content([
+            {"text": system_prompt},
+            {"text": user_prompt}
+        ])
+
+        response_text = response.text
+        
+        # Parse the JSON response
+        try:
+            # Clean up the response text to extract JSON
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if not json_match:
+                raise ValueError('No valid JSON found in AI response')
+            
+            ai_response = json.loads(json_match.group())
+        except (json.JSONDecodeError, ValueError) as parse_error:
+            logger.error(f"Failed to parse AI response: {response_text}")
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid response from AI service"
+            )
+
+        # Validate and format the response
+        steps = []
+        if ai_response.get('steps'):
+            for step_data in ai_response['steps']:
+                steps.append(TestStep(
+                    step=step_data.get('step', 'Generated step'),
+                    expectedResult=step_data.get('expectedResult', 'Generated expected result')
+                ))
+        else:
+            steps = [TestStep(
+                step='Generated step',
+                expectedResult='Generated expected result'
+            )]
+
+        response_data = GenerateTestCaseResponse(
+            name=ai_response.get('name', 'Generated Test Case'),
+            description=ai_response.get('description', 'AI generated test case description'),
+            type=ai_response.get('type', 'positive'),
+            priority=ai_response.get('priority', 'medium'),
+            steps=steps,
+            expectedResult=ai_response.get('expectedResult', 'Generated final result'),
+            tags=ai_response.get('tags', ['ai-generated']),
+            originalPrompt=request.prompt,
+            aiGenerated=True,
+            confidence=ai_response.get('confidence', 0.8),
+            aiSuggestions=ai_response.get('aiSuggestions')
+        )
+
+        logger.info(f"Successfully generated test case for prompt: {request.prompt}")
+        return response_data
+
+    except Exception as e:
+        logger.error(f"Gemini AI Error: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to generate test case with AI"
+        )
 
 @app.get("/stats")
 async def get_statistics():
