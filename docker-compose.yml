@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL Database
   mysql:
@@ -26,11 +24,7 @@ services:
       dockerfile: Dockerfile
     container_name: testcase_backend
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USERNAME: root
-      DB_PASSWORD: password
-      DB_DATABASE: testcase_management
+      DATABASE_URL: mysql://root:password@mysql:3306/testcase_management
       AI_SERVICE_URL: http://ai:8000
       NODE_ENV: production
       PORT: 3000
