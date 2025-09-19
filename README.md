@@ -74,13 +74,10 @@ Buat test case otomatis hanya dengan mendeskripsikan fitur yang ingin diuji. AI 
    cd test-case-management
    ```
 
-2. **Setup Environment Variables (Opsional - untuk fitur AI)**
+2. **Setup Gemini API Key (Opsional - untuk fitur AI)**
    ```bash
-   # Copy file environment
-   cp .env.example .env
-   
-   # Edit file .env dan tambahkan Gemini API Key
-   # GEMINI_API_KEY=your_gemini_api_key_here
+   # Edit docker-compose.yml dan uncomment + set GEMINI_API_KEY di service 'ai'
+   # GEMINI_API_KEY: "your_gemini_api_key_here"
    ```
    
    > **💡 Tip**: Dapatkan Gemini API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey). Tanpa API key, semua fitur tetap berjalan kecuali fitur AI generation.
@@ -96,6 +93,52 @@ Buat test case otomatis hanya dengan mendeskripsikan fitur yang ingin diuji. AI 
 
 ### ⚡ **Langsung Pakai Tanpa Ribet**
 Tidak perlu instalasi rumit atau konfigurasi yang membingungkan. Cukup satu perintah dan aplikasi siap digunakan!
+
+### 🛠️ **Development Mode (Tanpa Docker)**
+
+Untuk development atau jika tidak ingin menggunakan Docker, Anda bisa menjalankan setiap service secara terpisah:
+
+#### **Prerequisites:**
+- Node.js 18+ dan npm
+- Python 3.8+
+- MySQL Server berjalan di localhost:3306
+
+#### **Quick Start:**
+```bash
+# Clone repository
+git clone https://github.com/atiohaidar/test-case-management.git
+cd test-case-management
+
+# Setup environment files
+./dev.sh
+# Pilih opsi 4 untuk setup environment files
+
+# Edit file konfigurasi:
+# - backend/.env (konfigurasi database)
+# - ai/.env (konfigurasi database + Gemini API key)
+
+# Jalankan semua service
+./dev.sh
+# Pilih opsi 3 untuk start semua service
+```
+
+#### **Manual Start (Per Service):**
+```bash
+# Start AI Service (Terminal 1)
+./start-ai.sh
+
+# Start Backend (Terminal 2)  
+./start-backend.sh
+```
+
+#### **Service URLs:**
+- 🤖 **AI Service**: http://localhost:8000 (docs: /docs)
+- 🚀 **Backend API**: http://localhost:3000 (docs: /api)
+
+> **💡 Development Tips**: 
+> - AI Service harus running sebelum Backend
+> - Database MySQL harus accessible di localhost:3306
+> - Untuk fitur AI generation, set `GEMINI_API_KEY` di `ai/.env`
 
 ---
 
