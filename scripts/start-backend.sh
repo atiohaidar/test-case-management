@@ -4,6 +4,10 @@
 
 echo "🚀 Starting NestJS Backend Development Server..."
 
+# Get the project root directory (parent of scripts folder)
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Check if .env file exists
 if [ ! -f "backend/.env" ]; then
     echo "❌ File backend/.env tidak ditemukan!"

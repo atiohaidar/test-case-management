@@ -110,25 +110,28 @@ git clone https://github.com/atiohaidar/test-case-management.git
 cd test-case-management
 
 # Setup environment files
-./dev.sh
-# Pilih opsi 4 untuk setup environment files
+./main-dev.sh
+# Pilih opsi 6 untuk setup environment files
 
 # Edit file konfigurasi:
 # - backend/.env (konfigurasi database)
 # - ai/.env (konfigurasi database + Gemini API key)
 
-# Jalankan semua service
-./dev.sh
-# Pilih opsi 3 untuk start semua service
+# Jalankan semua service dengan MySQL
+./main-dev.sh
+# Pilih opsi 5 untuk start semua service + MySQL
 ```
 
 #### **Manual Start (Per Service):**
 ```bash
-# Start AI Service (Terminal 1)
-./start-ai.sh
+# Start MySQL Database
+./scripts/start-mysql.sh
 
-# Start Backend (Terminal 2)  
-./start-backend.sh
+# Start AI Service
+./scripts/start-ai.sh
+
+# Start Backend
+./scripts/start-backend.sh
 ```
 
 #### **Service URLs:**
@@ -136,8 +139,9 @@ cd test-case-management
 - 🚀 **Backend API**: http://localhost:3000 (docs: /api)
 
 > **💡 Development Tips**: 
-> - AI Service harus running sebelum Backend
-> - Database MySQL harus accessible di localhost:3306
+> - Gunakan `./main-dev.sh` untuk akses mudah ke semua fitur development
+> - MySQL bisa dijalankan via Docker dengan opsi 4 atau 5
+> - Semua script development tersedia di folder `scripts/`
 > - Untuk fitur AI generation, set `GEMINI_API_KEY` di `ai/.env`
 
 ---
@@ -388,26 +392,36 @@ docker-compose down
 
 ### 💻 **Development Lokal**
 
-**Backend (NestJS):**
+**Menggunakan Script Development (Recommended):**
 ```bash
+# Script utama dengan menu interaktif
+./main-dev.sh
+
+# Atau langsung ke script tertentu
+./scripts/start-mysql.sh      # MySQL saja
+./scripts/start-ai.sh         # AI Service saja  
+./scripts/start-backend.sh    # Backend saja
+```
+
+**Manual Setup (Optional):**
+```bash
+# Backend (NestJS)
 cd backend
 npm install
 npm run start:dev
-```
 
-**AI Service (Python):**
-```bash
+# AI Service (Python)
 cd ai
 pip install -r requirements.txt
 python main.py
+
+# Database MySQL via Docker
+docker-compose up -d mysql
+cd backend && npx prisma db push
 ```
 
-**Database:**
+**Database Management:**
 ```bash
-# Jalankan hanya MySQL
-docker-compose up -d mysql
-
-# Kelola database
 cd backend
 npx prisma studio          # GUI database
 npx prisma generate        # Generate client

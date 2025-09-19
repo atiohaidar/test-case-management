@@ -4,6 +4,10 @@
 
 echo "🤖 Starting Python AI Service Development Server..."
 
+# Get the project root directory (parent of scripts folder)
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Check if .env file exists
 if [ ! -f "ai/.env" ]; then
     echo "❌ File ai/.env tidak ditemukan!"

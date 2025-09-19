@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# Main development script - forwards to scripts/dev.sh
-SCRIPTS_DIR="$(cd "$(dirname "$0")/scripts" && pwd)"
-exec "$SCRIPTS_DIR/dev.sh" "$@"
+# Script untuk menjalankan seluruh Test Case Management System dalam mode development
+
+echo "🧪 Test Case Management System - Development Mode"
+echo "================================================="
+
+# Get the project root directory (parent of scripts folder)
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Function to check if command exists
 command_exists() {
@@ -31,6 +36,9 @@ echo ""
 
 # Check environment files
 echo "📝 Checking environment files..."
+
+# Change to project root for environment file checks
+cd "$PROJECT_ROOT"
 
 if [ ! -f "backend/.env" ]; then
     echo "❌ backend/.env tidak ditemukan!"
@@ -61,13 +69,13 @@ read -p "Pilih opsi (1-6): " choice
 case $choice in
     1)
         echo "🤖 Starting AI Service..."
-        chmod +x start-ai.sh
-        ./start-ai.sh
+        chmod +x "$SCRIPTS_DIR/start-ai.sh"
+        "$SCRIPTS_DIR/start-ai.sh"
         ;;
     2)
         echo "🚀 Starting Backend..."
-        chmod +x start-backend.sh
-        ./start-backend.sh
+        chmod +x "$SCRIPTS_DIR/start-backend.sh"
+        "$SCRIPTS_DIR/start-backend.sh"
         ;;
     3)
         echo "🌟 Starting all services..."
@@ -76,46 +84,25 @@ case $choice in
         echo ""
         
         # Start AI service in background (new terminal if possible)
-        chmod +x start-ai.sh
+        chmod +x "$SCRIPTS_DIR/start-ai.sh"
         if command_exists gnome-terminal; then
-            gnome-terminal -- bash -c "./start-ai.sh; exec bash"
+            gnome-terminal -- bash -c "cd '$PROJECT_ROOT' && '$SCRIPTS_DIR/start-ai.sh'; exec bash"
         elif command_exists xterm; then
-            xterm -e "./start-ai.sh" &
+            xterm -e "cd '$PROJECT_ROOT' && '$SCRIPTS_DIR/start-ai.sh'" &
         else
             echo "⚠️  Starting AI service in background..."
-            ./start-ai.sh &
+            cd "$PROJECT_ROOT" && "$SCRIPTS_DIR/start-ai.sh" &
             sleep 5
         fi
         
         # Start backend in current terminal
-        chmod +x start-backend.sh
-        ./start-backend.sh
+        chmod +x "$SCRIPTS_DIR/start-backend.sh"
+        cd "$PROJECT_ROOT" && "$SCRIPTS_DIR/start-backend.sh"
         ;;
     4)
-        echo "�️  Starting MySQL Database..."
-        echo "📝 Starting MySQL container from Docker..."
-        
-        # Check if MySQL container already exists
-        if docker ps -a --format "table {{.Names}}" | grep -q "testcase_mysql"; then
-            echo "📦 MySQL container already exists, starting it..."
-            docker start testcase_mysql
-        else
-            echo "📦 Creating and starting MySQL container..."
-            docker-compose up -d mysql
-        fi
-        
-        echo "⏳ Waiting for MySQL to be ready..."
-        sleep 10
-        
-        # Setup database schema
-        echo "🔧 Setting up database schema..."
-        cd backend && npx prisma db push && cd ..
-        
-        echo "✅ MySQL Database ready!"
-        echo "🌐 MySQL available at localhost:3306"
-        echo "📊 Database: testcase_management"
-        echo "👤 Username: root"
-        echo "🔑 Password: password"
+        echo "🗄️  Starting MySQL Database..."
+        chmod +x "$SCRIPTS_DIR/start-mysql.sh"
+        "$SCRIPTS_DIR/start-mysql.sh"
         ;;
     5)
         echo "🌟 Starting all services with MySQL..."
@@ -123,41 +110,30 @@ case $choice in
         echo "         Backend akan dimulai di terminal ini"
         echo ""
         
-        # Start MySQL first
+        # Start MySQL first using dedicated script
         echo "🗄️  Starting MySQL Database..."
-        if docker ps -a --format "table {{.Names}}" | grep -q "testcase_mysql"; then
-            echo "📦 MySQL container already exists, starting it..."
-            docker start testcase_mysql
-        else
-            echo "📦 Creating and starting MySQL container..."
-            docker-compose up -d mysql
-        fi
-        
-        echo "⏳ Waiting for MySQL to be ready..."
-        sleep 10
-        
-        # Setup database schema
-        echo "🔧 Setting up database schema..."
-        cd backend && npx prisma db push && cd ..
+        chmod +x "$SCRIPTS_DIR/start-mysql.sh"
+        "$SCRIPTS_DIR/start-mysql.sh"
         
         # Start AI service in background (new terminal if possible)
-        chmod +x start-ai.sh
+        chmod +x "$SCRIPTS_DIR/start-ai.sh"
         if command_exists gnome-terminal; then
-            gnome-terminal -- bash -c "./start-ai.sh; exec bash"
+            gnome-terminal -- bash -c "cd '$PROJECT_ROOT' && '$SCRIPTS_DIR/start-ai.sh'; exec bash"
         elif command_exists xterm; then
-            xterm -e "./start-ai.sh" &
+            xterm -e "cd '$PROJECT_ROOT' && '$SCRIPTS_DIR/start-ai.sh'" &
         else
             echo "⚠️  Starting AI service in background..."
-            ./start-ai.sh &
+            cd "$PROJECT_ROOT" && "$SCRIPTS_DIR/start-ai.sh" &
             sleep 5
         fi
         
         # Start backend in current terminal
-        chmod +x start-backend.sh
-        ./start-backend.sh
+        chmod +x "$SCRIPTS_DIR/start-backend.sh"
+        cd "$PROJECT_ROOT" && "$SCRIPTS_DIR/start-backend.sh"
         ;;
     6)
-        echo "�🔧 Setting up environment files..."
+        echo "🔧 Setting up environment files..."
+        cd "$PROJECT_ROOT"
         if [ ! -f "backend/.env" ]; then
             cp backend/.env.example backend/.env
             echo "✅ Created backend/.env"
