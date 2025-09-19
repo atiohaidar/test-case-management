@@ -72,4 +72,8 @@ export class CreateTestCaseDto {
   @IsString()
   @IsOptional()
   aiSuggestions?: string;
+
+  @ApiPropertyOptional({ description: 'Token usage from Gemini AI' })
+  @IsOptional()
+  tokenUsage?: any;
 }

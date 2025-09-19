@@ -364,6 +364,12 @@ curl -X POST http://localhost:3000/testcases/generate-with-ai \
   "aiGenerated": true,
   "confidence": 0.85,
   "aiGenerationMethod": "rag",
+  "tokenUsage": {
+    "inputTokens": 120,
+    "outputTokens": 350,
+    "totalTokens": 470,
+    "estimatedCost": 0.000235
+  },
   "ragReferences": [
     {
       "testCaseId": "cm123abc456",
@@ -434,6 +440,13 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
   "aiGenerated": true,
   "originalPrompt": "Buat test case untuk reset password user",
   "aiConfidence": 0.87,
+  "aiGenerationMethod": "rag",
+  "tokenUsage": {
+    "inputTokens": 140,
+    "outputTokens": 380,
+    "totalTokens": 520,
+    "estimatedCost": 0.000260
+  },
   "createdAt": "2025-09-19T10:30:00Z",
   "updatedAt": "2025-09-19T10:30:00Z",
   

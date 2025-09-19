@@ -1,5 +1,42 @@
 # Changelog - Test Case Management with RAG
 
+## 🚀 Version 2.2.0 - Token Usage Tracking (September 19, 2025)
+
+### ✨ New Features
+
+#### 💰 Gemini API Token Usage Tracking
+- **NEW**: `tokenUsage` field di TestCase model untuk menyimpan data penggunaan token
+- **NEW**: Real-time token tracking dari Gemini API responses
+- **NEW**: Cost estimation berdasarkan token usage
+- **NEW**: Token usage persistence di database
+- **FEATURE**: Token usage data included di semua AI generation responses
+- **FEATURE**: Token usage visible di `getFullDetail` endpoint
+
+#### 📊 Enhanced API Responses
+- **IMPROVED**: Semua AI endpoints mengembalikan `tokenUsage` object
+- **IMPROVED**: `getFullDetail` response include token usage data
+- **NEW**: Token usage structure:
+  ```json
+  {
+    "inputTokens": 120,
+    "outputTokens": 350,
+    "totalTokens": 470,
+    "estimatedCost": 0.000235
+  }
+  ```
+
+#### 🗄️ Database Schema Updates
+- **NEW**: `tokenUsage Json?` field di TestCase model
+- **NEW**: Prisma migration untuk add token usage field
+- **IMPROVED**: CreateTestCaseDto dan UpdateTestCaseDto support tokenUsage
+
+### 📖 Documentation Updates
+- **UPDATED**: Tech.md dengan Token Usage & Cost Management section
+- **UPDATED**: examples.md dengan tokenUsage examples di API responses
+- **UPDATED**: Prisma schema documentation dengan tokenUsage field
+
+---
+
 ## 🚀 Version 2.1.0 - Enhanced Reference Management (September 2025)
 
 ### ✨ New Features

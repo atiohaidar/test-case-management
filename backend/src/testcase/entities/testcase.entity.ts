@@ -45,6 +45,24 @@ export class TestCaseDto {
   @ApiProperty({ required: false })
   referenceId?: string;
 
+  @ApiProperty({ required: false, description: 'Whether this test case was AI-generated' })
+  aiGenerated?: boolean;
+
+  @ApiProperty({ required: false, description: 'Original prompt used for AI generation' })
+  originalPrompt?: string;
+
+  @ApiProperty({ required: false, description: 'AI confidence score (0-1)' })
+  aiConfidence?: number;
+
+  @ApiProperty({ required: false, description: 'AI suggestions for improvement' })
+  aiSuggestions?: string;
+
+  @ApiProperty({ required: false, description: 'AI generation method' })
+  aiGenerationMethod?: string;
+
+  @ApiProperty({ required: false, description: 'Token usage from Gemini AI' })
+  tokenUsage?: any;
+
   @ApiProperty()
   createdAt: Date;
 

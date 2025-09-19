@@ -34,6 +34,7 @@ export class TestCaseService {
           originalPrompt: createTestCaseDto.originalPrompt,
           aiConfidence: createTestCaseDto.aiConfidence,
           aiSuggestions: createTestCaseDto.aiSuggestions,
+          tokenUsage: createTestCaseDto.tokenUsage,
         } as any,
       });
 
@@ -87,6 +88,7 @@ export class TestCaseService {
           ...(updateTestCaseDto.steps && { steps: updateTestCaseDto.steps as any }),
           ...(updateTestCaseDto.expectedResult && { expectedResult: updateTestCaseDto.expectedResult }),
           ...(updateTestCaseDto.tags && { tags: updateTestCaseDto.tags as any }),
+          ...(updateTestCaseDto.tokenUsage !== undefined && { tokenUsage: updateTestCaseDto.tokenUsage }),
           embedding: JSON.stringify(embedding),
         } as any,
       });
@@ -400,6 +402,7 @@ export class TestCaseService {
         aiConfidence: aiResponse.confidence,
         aiSuggestions: aiResponse.aiSuggestions,
         aiGenerationMethod: aiResponse.aiGenerationMethod,
+        tokenUsage: aiResponse.tokenUsage || null,
       };
 
       // Generate embedding untuk test case yang baru

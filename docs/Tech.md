@@ -131,6 +131,7 @@ model TestCase {
   aiConfidence   Float?                             // Confidence score dari AI (0-1)
   aiSuggestions  String?           @db.Text         // Saran dari AI untuk improvement
   aiGenerationMethod String?                        // "pure_ai" | "rag" | null
+  tokenUsage     Json?                              // Token usage dari Gemini AI
   
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -378,6 +379,12 @@ curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
   "aiGenerated": true,
   "confidence": 0.85,
   "aiGenerationMethod": "rag",
+  "tokenUsage": {
+    "inputTokens": 120,
+    "outputTokens": 350,
+    "totalTokens": 470,
+    "estimatedCost": 0.000235
+  },
   "ragReferences": [
     {
       "testCaseId": "cm123abc456",
@@ -458,6 +465,13 @@ curl -X GET http://localhost:3000/testcases/{test-case-id}/full
   "aiGenerated": true,
   "originalPrompt": "Original AI prompt",
   "aiConfidence": 0.95,
+  "aiGenerationMethod": "rag",
+  "tokenUsage": {
+    "inputTokens": 120,
+    "outputTokens": 350,
+    "totalTokens": 470,
+    "estimatedCost": 0.000235
+  },
   "createdAt": "2025-09-19T10:00:00Z",
   "updatedAt": "2025-09-19T10:00:00Z",
   
@@ -720,7 +734,41 @@ MODEL_NAME=all-MiniLM-L6-v2
 
 ---
 
-## 🐳 Docker Configuration
+## � Token Usage & Cost Management
+
+### Gemini API Token Tracking
+Sistem secara otomatis melacak penggunaan token dari Gemini API untuk setiap AI-generated test case.
+
+**Token Usage Structure:**
+```json
+{
+  "inputTokens": 120,
+  "outputTokens": 350,
+  "totalTokens": 470,
+  "estimatedCost": 0.000235
+}
+```
+
+### Storage & Persistence
+- **Database Storage**: Token usage disimpan di field `tokenUsage` (JSON) pada tabel TestCase
+- **API Responses**: Semua AI generation endpoints mengembalikan token usage info
+- **Full Detail**: Endpoint `GET /testcases/:id/full` menyertakan token usage data
+
+### Token Usage Features
+1. **Real-time Tracking**: Setiap request ke Gemini API dilacak token usagenya
+2. **Cost Estimation**: Estimasi biaya berdasarkan Gemini pricing
+3. **Historical Data**: Token usage tersimpan permanen di database
+4. **Audit Trail**: Tracking untuk keperluan monitoring dan billing
+
+### Implementation Details
+- **Backend**: NestJS service menyimpan tokenUsage saat create/update test case
+- **AI Service**: FastAPI service menangkap usage_metadata dari Gemini API
+- **Database**: Prisma schema dengan field `tokenUsage Json?`
+- **DTOs**: Semua relevant DTOs include tokenUsage field
+
+---
+
+## �🐳 Docker Configuration
 
 ### Multi-Container Setup
 - **mysql**: Database server (port 3306)
