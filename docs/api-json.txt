@@ -1,0 +1,972 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/testcases": {
+      "post": {
+        "operationId": "TestCaseController_create",
+        "summary": "Create a new test case",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestCaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Test case created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      },
+      "get": {
+        "operationId": "TestCaseController_findAll",
+        "summary": "Get all test cases",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of all test cases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestCaseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/search": {
+      "get": {
+        "operationId": "TestCaseController_search",
+        "summary": "Search test cases using semantic similarity",
+        "parameters": [
+          {
+            "name": "query",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minSimilarity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "maximum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results with similarity scores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/generate-with-ai": {
+      "post": {
+        "operationId": "TestCaseController_generateWithAI",
+        "summary": "Generate a test case draft using AI (Gemini)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTestCaseWithAIDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI-generated test case draft (not saved to database)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIGeneratedTestCaseResponseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "AI service unavailable or API key not configured"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/generate-and-save-with-ai": {
+      "post": {
+        "operationId": "TestCaseController_generateAndSaveWithAI",
+        "summary": "Generate and save a test case using AI with optional RAG",
+        "description": "Generate test case with AI and automatically save to database. Supports RAG for better context-aware generation.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTestCaseWithAIDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AI-generated test case created and saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "AI service unavailable or API key not configured"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/{id}/with-reference": {
+      "get": {
+        "operationId": "TestCaseController_findOneWithReference",
+        "summary": "Get a test case with reference information",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test case with reference info found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseWithReferenceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/{id}/derived": {
+      "get": {
+        "operationId": "TestCaseController_getDerived",
+        "summary": "Get test cases derived from this test case",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of derived test cases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestCaseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/derive/{referenceId}": {
+      "post": {
+        "operationId": "TestCaseController_deriveTestCase",
+        "summary": "Create a new test case based on an existing one",
+        "parameters": [
+          {
+            "name": "referenceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestCaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Test case derived successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Reference test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/{sourceId}/reference/{targetId}": {
+      "post": {
+        "operationId": "TestCaseController_addReference",
+        "summary": "Add a manual reference between two test cases",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Reference added successfully"
+          },
+          "404": {
+            "description": "Source or target test case not found"
+          },
+          "409": {
+            "description": "Reference already exists"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/reference/{referenceId}": {
+      "delete": {
+        "operationId": "TestCaseController_removeReference",
+        "summary": "Remove a reference between test cases",
+        "parameters": [
+          {
+            "name": "referenceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference removed successfully"
+          },
+          "404": {
+            "description": "Reference not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/{id}": {
+      "get": {
+        "operationId": "TestCaseController_findOne",
+        "summary": "Get a test case by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test case found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      },
+      "patch": {
+        "operationId": "TestCaseController_update",
+        "summary": "Update a test case",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTestCaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test case updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      },
+      "delete": {
+        "operationId": "TestCaseController_remove",
+        "summary": "Delete a test case",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Test case deleted successfully"
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Test Case Management API",
+    "description": "API for managing test cases with semantic search",
+    "version": "1.0",
+    "contact": {
+
+    }
+  },
+  "tags": [
+    {
+      "name": "testcases",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "TestStepDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string"
+          },
+          "expectedResult": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "expectedResult"
+        ]
+      },
+      "CreateTestCaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestStepDto"
+            }
+          },
+          "expectedResult": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Indicates if this test case was generated with AI assistance"
+          },
+          "originalPrompt": {
+            "type": "string",
+            "description": "Original prompt used for AI generation"
+          },
+          "aiConfidence": {
+            "type": "number",
+            "description": "AI confidence score (0-1)",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "aiSuggestions": {
+            "type": "string",
+            "description": "AI suggestions for improvement"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "type",
+          "priority",
+          "steps",
+          "expectedResult",
+          "tags"
+        ]
+      },
+      "TestCaseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "expectedResult": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "referenceId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "priority",
+          "steps",
+          "expectedResult",
+          "tags",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SearchResultDto": {
+        "type": "object",
+        "properties": {
+          "testCase": {
+            "type": "object"
+          },
+          "similarity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "testCase",
+          "similarity"
+        ]
+      },
+      "GenerateTestCaseWithAIDto": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Prompt untuk AI dalam bahasa natural"
+          },
+          "context": {
+            "type": "string",
+            "description": "Konteks tambahan untuk AI generation"
+          },
+          "preferredType": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ],
+            "description": "Tipe test case yang diinginkan (optional, AI akan menentukan jika tidak disebutkan)"
+          },
+          "preferredPriority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "description": "Prioritas yang diinginkan (optional, AI akan menentukan jika tidak disebutkan)"
+          },
+          "useRAG": {
+            "type": "boolean",
+            "description": "Aktifkan/nonaktifkan RAG (Retrieval-Augmented Generation)",
+            "default": true
+          },
+          "ragSimilarityThreshold": {
+            "type": "number",
+            "description": "Threshold similarity minimum untuk RAG (0-1)",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.7
+          },
+          "maxRAGReferences": {
+            "type": "number",
+            "description": "Maksimal jumlah referensi test case untuk RAG",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 3
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      },
+      "RAGReferenceDto": {
+        "type": "object",
+        "properties": {
+          "testCaseId": {
+            "type": "string",
+            "description": "ID test case yang dijadikan referensi"
+          },
+          "similarity": {
+            "type": "number",
+            "description": "Similarity score dengan prompt (0-1)"
+          },
+          "testCase": {
+            "type": "object",
+            "description": "Data test case referensi"
+          }
+        },
+        "required": [
+          "testCaseId",
+          "similarity",
+          "testCase"
+        ]
+      },
+      "AIGeneratedTestCaseResponseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nama test case yang dihasilkan AI"
+          },
+          "description": {
+            "type": "string",
+            "description": "Deskripsi test case yang dihasilkan AI"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ],
+            "description": "Tipe test case yang ditentukan AI"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "description": "Prioritas yang ditentukan AI"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "step": {
+                  "type": "string"
+                },
+                "expectedResult": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Langkah-langkah test case yang dihasilkan AI"
+          },
+          "expectedResult": {
+            "type": "string",
+            "description": "Expected result akhir yang dihasilkan AI"
+          },
+          "tags": {
+            "description": "Tags yang dihasilkan AI",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originalPrompt": {
+            "type": "string",
+            "description": "Prompt asli yang digunakan untuk generate"
+          },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Keterangan bahwa test case ini dibuat dengan bantuan AI"
+          },
+          "confidence": {
+            "type": "number",
+            "description": "Confidence score dari AI (0-1)"
+          },
+          "aiSuggestions": {
+            "type": "string",
+            "description": "Saran dari AI untuk improvement"
+          },
+          "aiGenerationMethod": {
+            "type": "string",
+            "description": "Metode AI generation yang digunakan",
+            "enum": [
+              "pure_ai",
+              "rag"
+            ]
+          },
+          "ragReferences": {
+            "description": "Referensi test case yang digunakan dalam RAG",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RAGReferenceDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "type",
+          "priority",
+          "steps",
+          "expectedResult",
+          "tags",
+          "originalPrompt",
+          "aiGenerated",
+          "confidence",
+          "aiSuggestions",
+          "aiGenerationMethod",
+          "ragReferences"
+        ]
+      },
+      "TestCaseReferenceTargetDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "priority",
+          "createdAt"
+        ]
+      },
+      "TestCaseReferenceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "referenceType": {
+            "type": "string",
+            "description": "Type of reference: manual_reference, rag_retrieval, or derived"
+          },
+          "similarityScore": {
+            "type": "number",
+            "description": "Similarity score (for RAG references)"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/TestCaseReferenceTargetDto"
+          }
+        },
+        "required": [
+          "id",
+          "targetId",
+          "referenceType",
+          "createdAt",
+          "target"
+        ]
+      },
+      "TestCaseWithReferenceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "expectedResult": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "referenceId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "references": {
+            "description": "All references from this test case",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestCaseReferenceDto"
+            }
+          },
+          "derivedCount": {
+            "type": "number",
+            "description": "Number of test cases derived from this test case"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "priority",
+          "steps",
+          "expectedResult",
+          "tags",
+          "createdAt",
+          "updatedAt",
+          "references",
+          "derivedCount"
+        ]
+      },
+      "UpdateTestCaseDto": {
+        "type": "object",
+        "properties": {
+
+        }
+      }
+    }
+  }
+}
