@@ -33,6 +33,18 @@ Cari kasus uji hanya dengan mengetik kata kunci dalam bahasa natural. AI akan me
 
 **Contoh:** Ketik *"login gagal"* → Sistem langsung menampilkan semua test case terkait masalah login
 
+### 🎨 **Generasi Test Case dengan AI (Gemini)**
+Buat test case otomatis hanya dengan mendeskripsikan fitur yang ingin diuji. AI Gemini akan membuat test case lengkap dengan langkah-langkah detail.
+
+**Contoh:** Input *"Test fitur upload file PDF"* → AI akan generate test case lengkap dengan validasi format, ukuran, dan error handling
+
+**Fitur:**
+- 🧠 Powered by Google Gemini AI
+- 📝 Langkah-langkah detail otomatis
+- 🎯 Prioritas dan kategori yang tepat
+- 🏷️ Tag relevan otomatis
+- ⚡ Hasil draft (bisa diedit sebelum disimpan)
+
 ### 📋 **Manajemen Test Case Lengkap**
 - ✅ Buat, edit, dan hapus kasus uji
 - 🏷️ Kategorikan berdasarkan jenis (positif/negatif)
@@ -62,12 +74,23 @@ Cari kasus uji hanya dengan mengetik kata kunci dalam bahasa natural. AI akan me
    cd test-case-management
    ```
 
-2. **Jalankan dengan satu perintah**
+2. **Setup Environment Variables (Opsional - untuk fitur AI)**
+   ```bash
+   # Copy file environment
+   cp .env.example .env
+   
+   # Edit file .env dan tambahkan Gemini API Key
+   # GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+   
+   > **💡 Tip**: Dapatkan Gemini API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey). Tanpa API key, semua fitur tetap berjalan kecuali fitur AI generation.
+
+3. **Jalankan dengan satu perintah**
    ```bash
    docker-compose up -d
    ```
 
-3. **Selesai!** Buka browser dan kunjungi:
+4. **Selesai!** Buka browser dan kunjungi:
    - 🌐 **Aplikasi utama**: http://localhost:3000/api
    - 📚 **Dokumentasi**: http://localhost:3000/api
 
@@ -108,12 +131,55 @@ POST /testcases
 GET /testcases/search?query=login gagal password salah
 ```
 
-### 3️⃣ **Melihat Semua Test Case**
+### 3️⃣ **Generate Test Case dengan AI (Gemini)**
+```http
+POST /testcases/generate-with-ai
+```
+```json
+{
+  "prompt": "Test fitur upload file PDF dengan validasi ukuran maksimal 5MB",
+  "context": "Aplikasi e-learning dengan sistem upload tugas",
+  "preferredType": "functional",
+  "preferredPriority": "high"
+}
+```
+
+**Response:**
+```json
+{
+  "name": "Test Upload File PDF - Validasi Ukuran Maksimal 5MB",
+  "description": "Menguji fitur upload file PDF dengan validasi batas ukuran maksimal 5MB pada sistem e-learning",
+  "type": "functional",
+  "priority": "high",
+  "steps": [
+    {
+      "step": "Akses halaman upload tugas",
+      "expectedResult": "Halaman upload tugas berhasil ditampilkan"
+    },
+    {
+      "step": "Pilih file PDF dengan ukuran tepat 5MB",
+      "expectedResult": "File berhasil dipilih dan ditampilkan nama file"
+    },
+    {
+      "step": "Klik tombol upload",
+      "expectedResult": "File berhasil diupload dan muncul notifikasi sukses"
+    }
+  ],
+  "expectedResult": "File PDF berhasil diupload dan tersimpan di sistem dengan validasi ukuran yang tepat",
+  "tags": ["upload", "pdf", "validation", "file-size", "e-learning"],
+  "originalPrompt": "Test fitur upload file PDF dengan validasi ukuran maksimal 5MB",
+  "aiGenerated": true,
+  "confidence": 0.92,
+  "aiSuggestions": "Pertimbangkan untuk menambahkan test case negative untuk file yang melebihi 5MB"
+}
+```
+
+### 4️⃣ **Melihat Semua Test Case**
 ```http
 GET /testcases
 ```
 
-### 4️⃣ **Membuat Test Case Turunan**
+### 5️⃣ **Membuat Test Case Turunan**
 ```http
 POST /testcases/derive/{id-test-case-induk}
 ```

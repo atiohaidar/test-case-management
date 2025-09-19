@@ -15,6 +15,7 @@ import { TestCaseService } from './testcase.service';
 import { CreateTestCaseDto } from './dto/create-testcase.dto';
 import { UpdateTestCaseDto } from './dto/update-testcase.dto';
 import { SearchTestCaseDto, SearchResultDto } from './dto/search-testcase.dto';
+import { GenerateTestCaseWithAIDto, AIGeneratedTestCaseResponseDto } from './dto/generate-testcase-ai.dto';
 import { TestCaseDto } from './entities/testcase.entity';
 import { TestCaseWithReferenceDto } from './dto/testcase-with-reference.dto';
 
@@ -42,6 +43,18 @@ export class TestCaseController {
   @ApiResponse({ status: 200, description: 'Search results with similarity scores', type: [SearchResultDto] })
   async search(@Query() searchDto: SearchTestCaseDto): Promise<SearchResultDto[]> {
     return this.testCaseService.search(searchDto);
+  }
+
+  @Post('generate-with-ai')
+  @ApiOperation({ summary: 'Generate a test case draft using AI (Gemini)' })
+  @ApiResponse({
+    status: 200,
+    description: 'AI-generated test case draft (not saved to database)',
+    type: AIGeneratedTestCaseResponseDto
+  })
+  @ApiResponse({ status: 500, description: 'AI service unavailable or API key not configured' })
+  async generateWithAI(@Body() generateDto: GenerateTestCaseWithAIDto): Promise<AIGeneratedTestCaseResponseDto> {
+    return this.testCaseService.generateTestCaseWithAI(generateDto);
   }
 
   @Get(':id/with-reference')

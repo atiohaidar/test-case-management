@@ -36,6 +36,13 @@ model TestCase {
   tags           Json
   embedding      String?           @db.Text
   referenceId    String?           // ID test case yang dijadikan referensi
+  
+  // AI Generation Metadata
+  aiGenerated    Boolean           @default(false)  // Apakah dibuat dengan bantuan AI
+  originalPrompt String?           @db.Text         // Prompt asli yang digunakan untuk AI generation
+  aiConfidence   Float?                             // Confidence score dari AI (0-1)
+  aiSuggestions  String?           @db.Text         // Saran dari AI untuk improvement
+  
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
