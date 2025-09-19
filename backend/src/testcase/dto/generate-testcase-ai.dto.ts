@@ -133,4 +133,22 @@ export class AIGeneratedTestCaseResponseDto {
         description: 'Referensi test case yang digunakan dalam RAG'
     })
     ragReferences: RAGReferenceDto[];
+
+    // Token Usage Information
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            inputTokens: { type: 'number' },
+            outputTokens: { type: 'number' },
+            totalTokens: { type: 'number' },
+            estimatedCost: { type: 'number' }
+        },
+        description: 'Informasi penggunaan token Gemini API'
+    })
+    tokenUsage?: {
+        inputTokens: number;
+        outputTokens: number;
+        totalTokens: number;
+        estimatedCost: number;
+    };
 }

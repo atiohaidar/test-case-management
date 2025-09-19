@@ -64,6 +64,12 @@ class RAGReference(BaseModel):
     similarity: float
     testCase: dict
 
+class TokenUsage(BaseModel):
+    """Token usage information from Gemini API"""
+    prompt_token_count: Optional[int] = None
+    candidates_token_count: Optional[int] = None
+    total_token_count: Optional[int] = None
+
 class GenerateTestCaseRequest(BaseModel):
     prompt: str
     context: Optional[str] = None
@@ -73,6 +79,8 @@ class GenerateTestCaseRequest(BaseModel):
     useRAG: bool = Field(default=True, description="Enable/disable RAG retrieval")
     ragSimilarityThreshold: float = Field(default=0.7, ge=0.0, le=1.0, description="Minimum similarity threshold for RAG")
     maxRAGReferences: int = Field(default=3, ge=1, le=10, description="Maximum number of RAG references")
+    # Token tracking
+    includeTokenUsage: bool = Field(default=True, description="Include token usage in response")
 
 class GenerateTestCaseResponse(BaseModel):
     name: str
@@ -88,6 +96,9 @@ class GenerateTestCaseResponse(BaseModel):
     aiSuggestions: Optional[str] = None
     # RAG Metadata
     aiGenerationMethod: str  # "pure_ai" | "rag"
+    ragReferences: List[RAGReference] = []
+    # Token usage information
+    tokenUsage: Optional[TokenUsage] = None
     ragReferences: List[RAGReference] = []
 
 class DatabaseConnection:
@@ -287,13 +298,29 @@ async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
         if request.preferredPriority:
             user_prompt += f"\n\nPreferred priority: {request.preferredPriority}"
 
-        # Generate content
+        # Generate content with token tracking
         response = model.generate_content([
             {"text": system_prompt},
             {"text": user_prompt}
         ])
 
         response_text = response.text
+        
+        # Log token usage information if available
+        try:
+            # Gemini API provides usage metadata in response
+            if hasattr(response, 'usage_metadata'):
+                usage = response.usage_metadata
+                logger.info(f"Token usage - Prompt: {usage.prompt_token_count}, "
+                           f"Candidates: {usage.candidates_token_count}, "
+                           f"Total: {usage.total_token_count}")
+            
+            # Alternative: Check if response has prompt_feedback with token info
+            if hasattr(response, 'prompt_feedback'):
+                logger.info(f"Prompt feedback: {response.prompt_feedback}")
+                
+        except Exception as token_error:
+            logger.warning(f"Could not retrieve token usage: {token_error}")
         
         # Parse the JSON response
         try:
@@ -310,6 +337,20 @@ async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
                 status_code=500,
                 detail="Invalid response from AI service"
             )
+
+        # Collect token usage information
+        token_usage = None
+        if request.includeTokenUsage:
+            try:
+                if hasattr(response, 'usage_metadata'):
+                    usage = response.usage_metadata
+                    token_usage = TokenUsage(
+                        prompt_token_count=getattr(usage, 'prompt_token_count', None),
+                        candidates_token_count=getattr(usage, 'candidates_token_count', None),
+                        total_token_count=getattr(usage, 'total_token_count', None)
+                    )
+            except Exception as token_error:
+                logger.warning(f"Could not extract token usage: {token_error}")
 
         # Validate and format the response
         steps = []
@@ -338,7 +379,8 @@ async def generate_test_case_with_ai(request: GenerateTestCaseRequest):
             confidence=ai_response.get('confidence', 0.8),
             aiSuggestions=ai_response.get('aiSuggestions'),
             aiGenerationMethod=generation_method,
-            ragReferences=rag_references
+            ragReferences=rag_references,
+            tokenUsage=token_usage
         )
 
         logger.info(f"Successfully generated test case using {generation_method} for prompt: {request.prompt}")
@@ -451,6 +493,93 @@ async def get_statistics():
     except Exception as e:
         logger.error(f"Statistics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
+
+class TokenEstimateRequest(BaseModel):
+    prompt: str
+    context: Optional[str] = None
+    useRAG: bool = Field(default=True)
+    ragSimilarityThreshold: float = Field(default=0.7)
+    maxRAGReferences: int = Field(default=3)
+
+class TokenEstimateResponse(BaseModel):
+    estimated_input_tokens: int
+    estimated_cost_usd: Optional[float] = None
+    model_name: str
+    note: str
+
+@app.post("/estimate-tokens", response_model=TokenEstimateResponse)
+async def estimate_tokens(request: TokenEstimateRequest):
+    """Estimate token usage for a prompt before making the actual AI call"""
+    try:
+        # Build the same prompt that would be sent to AI
+        enhanced_prompt = request.prompt
+        
+        # If RAG is enabled, simulate the enhancement
+        if request.useRAG:
+            # Perform search to get potential RAG context
+            search_request = SearchRequest(
+                query=request.prompt,
+                min_similarity=request.ragSimilarityThreshold,
+                limit=request.maxRAGReferences
+            )
+            
+            search_results = await semantic_search(search_request)
+            
+            if search_results:
+                # Simulate RAG context formatting
+                rag_context = "Berikut adalah contoh test case yang relevan sebagai referensi:\n\n"
+                for i, result in enumerate(search_results, 1):
+                    tc = result.testCase
+                    rag_context += f"=== Contoh {i} ===\n"
+                    rag_context += f"Nama: {tc.get('name', 'N/A')}\n"
+                    rag_context += f"Deskripsi: {tc.get('description', 'N/A')}\n"
+                    # Add more context simulation...
+                    rag_context += "\n"
+                
+                enhanced_prompt = f"{request.prompt}\n\n{rag_context}"
+        
+        # Build system and user prompts
+        system_prompt = await build_system_prompt(request.useRAG)
+        user_prompt = f"Generate a test case for: {enhanced_prompt}"
+        
+        if request.context:
+            user_prompt += f"\n\nAdditional context: {request.context}"
+        
+        # Estimate tokens (rough estimation: ~4 characters per token)
+        total_text = system_prompt + user_prompt
+        estimated_tokens = len(total_text) // 4
+        
+        # Gemini 1.5 Flash pricing (as of 2024): $0.00015 per 1K input tokens
+        estimated_cost = (estimated_tokens / 1000) * 0.00015
+        
+        return TokenEstimateResponse(
+            estimated_input_tokens=estimated_tokens,
+            estimated_cost_usd=round(estimated_cost, 6),
+            model_name="gemini-1.5-flash",
+            note="Estimation based on ~4 characters per token. Actual usage may vary."
+        )
+        
+    except Exception as e:
+        logger.error(f"Token estimation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to estimate tokens")
+
+@app.get("/token-info")
+async def get_token_info():
+    """Get information about token usage and pricing"""
+    return {
+        "model": "gemini-1.5-flash",
+        "pricing": {
+            "input_tokens_per_1k": "$0.00015",
+            "output_tokens_per_1k": "$0.0006",
+            "currency": "USD"
+        },
+        "limits": {
+            "max_input_tokens": 1048576,  # 1M tokens
+            "max_output_tokens": 8192
+        },
+        "estimation_method": "~4 characters per token",
+        "note": "Pricing and limits are approximate and may change. Check Google AI Studio for latest information."
+    }
 
 if __name__ == "__main__":
     import uvicorn

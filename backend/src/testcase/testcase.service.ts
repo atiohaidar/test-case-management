@@ -360,7 +360,11 @@ export class TestCaseService {
         maxRAGReferences: generateDto.maxRAGReferences ?? 3,
       });
 
-      return response.data;
+      // Return response with token usage information included
+      return {
+        ...response.data,
+        tokenUsage: response.data.tokenUsage || null
+      };
     } catch (error) {
       if (error.response?.status === 500 && error.response?.data?.detail?.includes('not configured')) {
         throw new HttpException(
@@ -439,6 +443,7 @@ export class TestCaseService {
       return {
         ...rest,
         aiGenerationMethod: aiResponse.aiGenerationMethod,
+        tokenUsage: aiResponse.tokenUsage || null,
         ragReferences: references.map(ref => ({
           id: ref.id,
           targetId: ref.targetId,
