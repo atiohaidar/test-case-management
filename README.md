@@ -1,4 +1,4 @@
-# 🧪 Sistem Manajemen Test Case
+# 🧪 Sistem Manajemen Test Case dengan RAG
 
 <div align="center">
 
@@ -6,44 +6,63 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![NestJS](https://img.shields.io/badge/NestJS-Framework-red?style=for-the-badge&logo=nestjs)](https://nestjs.com/)
 [![AI Powered](https://img.shields.io/badge/AI-Powered-green?style=for-the-badge&logo=openai)](https://github.com/atiohaidar/test-case-management)
+[![RAG](https://img.shields.io/badge/RAG-Enhanced-purple?style=for-the-badge&logo=brain)](https://github.com/atiohaidar/test-case-management)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-orange?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
 
 </div>
 
-> **Aplikasi pintar untuk mengelola dan mencari kasus uji perangkat lunak dengan teknologi AI**
+> **Aplikasi pintar untuk mengelola dan mencari kasus uji perangkat lunak dengan teknologi AI dan RAG (Retrieval-Augmented Generation)**
 
 ---
 
 ## 🎯 Apa itu Aplikasi Ini?
 
-**Sistem Manajemen Test Case** adalah aplikasi yang membantu tim pengembang software untuk:
+**Sistem Manajemen Test Case dengan RAG** adalah aplikasi yang membantu tim pengembang software untuk:
 
 📝 **Membuat dan menyimpan** skenario pengujian aplikasi  
-🔍 **Mencari dengan cerdas** menggunakan AI  
+🔍 **Mencari dengan cerdas** menggunakan AI semantic search  
+🤖 **Generate test case** dengan AI yang context-aware menggunakan RAG  
 📊 **Mengorganisir** berdasarkan prioritas dan kategori  
-🔗 **Melacak keterkaitan** antar kasus uji  
-⚡ **Menghemat waktu** dengan fitur pencarian semantik  
+🔗 **Melacak keterkaitan** antar kasus uji dengan sistem referensi  
+⚡ **Menghemat waktu** dengan fitur pencarian semantik dan AI generation  
 
 ---
 
 ## ✨ Fitur Unggulan
 
-### 🤖 **Pencarian Cerdas dengan AI**
+### � **RAG (Retrieval-Augmented Generation)**
+Teknologi terdepan yang menggabungkan pencarian semantik dengan AI generation untuk menghasilkan test case yang lebih konsisten dan berkualitas.
+
+**Cara Kerja RAG:**
+1. 🔍 Sistem mencari test case yang relevan dengan prompt Anda
+2. 📚 Test case relevan dijadikan konteks/referensi
+3. 🤖 AI menggunakan konteks untuk generate test case yang lebih baik
+4. 🔗 Sistem menyimpan referensi test case yang digunakan
+
+### 🤖 **Generasi Test Case dengan AI (Gemini + RAG)**
+Buat test case otomatis dengan dua mode:
+
+#### 🎯 **Pure AI Mode**
+Generate test case murni menggunakan AI tanpa referensi.
+
+#### 🔗 **RAG Mode** (Default)
+Generate test case dengan referensi ke test case existing yang relevan.
+
+**Keunggulan RAG Mode:**
+- ✨ Konsistensi dengan pattern existing
+- 📈 Kualitas test case yang lebih baik
+- 🎯 Follow best practices dari test case sebelumnya
+- 📝 Langkah-langkah yang lebih detail dan realistis
+
+**Contoh:** 
+- Input: *"Test logout user"*
+- RAG: Mencari test case login yang ada → Generate logout test yang konsisten
+- Result: Test case logout yang mengikuti pattern login existing
+
+### 🔍 **Pencarian Cerdas dengan AI**
 Cari kasus uji hanya dengan mengetik kata kunci dalam bahasa natural. AI akan memahami maksud Anda dan menampilkan hasil yang paling relevan.
 
 **Contoh:** Ketik *"login gagal"* → Sistem langsung menampilkan semua test case terkait masalah login
-
-### 🎨 **Generasi Test Case dengan AI (Gemini)**
-Buat test case otomatis hanya dengan mendeskripsikan fitur yang ingin diuji. AI Gemini akan membuat test case lengkap dengan langkah-langkah detail.
-
-**Contoh:** Input *"Test fitur upload file PDF"* → AI akan generate test case lengkap dengan validasi format, ukuran, dan error handling
-
-**Fitur:**
-- 🧠 Powered by Google Gemini AI
-- 📝 Langkah-langkah detail otomatis
-- 🎯 Prioritas dan kategori yang tepat
-- 🏷️ Tag relevan otomatis
-- ⚡ Hasil draft (bisa diedit sebelum disimpan)
 
 ### 📋 **Manajemen Test Case Lengkap**
 - ✅ Buat, edit, dan hapus kasus uji
@@ -351,7 +370,7 @@ GET /testcases/cmfq39fxd00019nknx5by8mz6/derived
 
 ---
 
-## 📋 Daftar Endpoint API
+## 📋 Daftar Endpoint API dengan RAG
 
 ### 🧪 **Test Case Management**
 | Method | Endpoint | Deskripsi |
@@ -366,13 +385,61 @@ GET /testcases/cmfq39fxd00019nknx5by8mz6/derived
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
 | `GET` | `/testcases/search` | Pencarian semantik dengan AI |
+| `POST` | `/testcases/generate-with-ai` | Generate test case (preview only) |
+| `POST` | `/testcases/generate-and-save-with-ai` | Generate dan langsung save |
 
-### 🔗 **Keterkaitan Test Case**
+### 🔗 **Keterkaitan Test Case & RAG**
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
-| `GET` | `/testcases/:id/with-reference` | Ambil test case dengan info referensi |
+| `GET` | `/testcases/:id/with-reference` | Ambil test case dengan RAG references |
 | `GET` | `/testcases/:id/derived` | Ambil semua test case turunan |
 | `POST` | `/testcases/derive/:referenceId` | Buat test case berdasarkan yang ada |
+
+### 🚀 **Contoh Penggunaan RAG API**
+
+#### Generate Test Case dengan RAG
+```bash
+# RAG-Enhanced Generation (Default)
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk logout user",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.7,
+    "maxRAGReferences": 3,
+    "preferredType": "positive",
+    "preferredPriority": "medium"
+  }'
+
+# Pure AI Generation (Tanpa RAG)
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk logout user",
+    "useRAG": false,
+    "preferredType": "positive"
+  }'
+```
+
+#### Generate dan Save dengan RAG
+```bash
+curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk reset password",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "context": "Aplikasi web e-commerce"
+  }'
+```
+
+### 🎯 **Parameter RAG**
+| Parameter | Type | Default | Deskripsi |
+|-----------|------|---------|-----------|
+| `useRAG` | boolean | true | Enable/disable RAG |
+| `ragSimilarityThreshold` | number (0-1) | 0.7 | Minimum similarity untuk referensi |
+| `maxRAGReferences` | number (1-10) | 3 | Maksimal jumlah referensi |
 
 ---
 

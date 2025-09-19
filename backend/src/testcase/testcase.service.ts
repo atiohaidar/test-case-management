@@ -220,7 +220,7 @@ export class TestCaseService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-      
+
       console.error('AI Service Error:', error.message);
       throw new HttpException(
         'Failed to generate test case with AI',
@@ -277,7 +277,7 @@ export class TestCaseService {
 
       // Return test case tanpa embedding
       const { embedding: _, ...rest } = testCase;
-      
+
       // Include references in response
       const references = await this.prisma.testCaseReference.findMany({
         where: { sourceId: testCase.id },
@@ -304,7 +304,7 @@ export class TestCaseService {
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       console.error('Generate and save error:', error.message);
       throw new HttpException(
         'Failed to generate and save test case',

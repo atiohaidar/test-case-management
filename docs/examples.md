@@ -1,6 +1,9 @@
-# Test Case Examples
+# Test Case Examples with RAG Implementation
 
-## Sample Test Cases for Testing the System
+## 🎯 Overview
+Dokumen ini berisi contoh-contoh test case dan cara menggunakan fitur RAG (Retrieval-Augmented Generation) untuk membuat test case yang lebih konsisten dan berkualitas.
+
+## 📋 Sample Test Cases untuk RAG Testing
 
 ### 1. Authentication Test Cases
 
@@ -47,7 +50,7 @@
       "expectedResult": "Halaman login ditampilkan"
     },
     {
-      "step": "Masukkan email yang valid",
+      "step": "Masukkan email yang valid (test@example.com)",
       "expectedResult": "Email berhasil diinput"
     },
     {
@@ -244,6 +247,232 @@
 curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{"name":"Login dengan kredensial valid","description":"Memverifikasi bahwa user dapat login dengan email dan password yang benar","type":"positive","priority":"high","steps":[{"step":"Buka halaman login","expectedResult":"Halaman login ditampilkan dengan form email dan password"}],"expectedResult":"User berhasil masuk ke sistem","tags":["authentication","login","positive","critical"]}'
+---
+
+## 🤖 RAG Implementation Examples
+
+### Step 1: Create Sample Test Cases untuk RAG
+Pertama, buat beberapa test case yang akan dijadikan referensi:
+
+```bash
+# Test Case 1 - Login Testing
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Login dengan Email Valid",
+    "description": "Memverifikasi bahwa user dapat login dengan email dan password yang valid",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Buka halaman login",
+        "expectedResult": "Halaman login ditampilkan"
+      },
+      {
+        "step": "Masukkan email valid: test@example.com",
+        "expectedResult": "Email terisi di field email"
+      },
+      {
+        "step": "Masukkan password valid: password123",
+        "expectedResult": "Password terisi di field password"
+      },
+      {
+        "step": "Klik tombol Login",
+        "expectedResult": "User berhasil login dan diarahkan ke dashboard"
+      }
+    ],
+    "expectedResult": "User berhasil masuk ke sistem dan dapat mengakses dashboard",
+    "tags": ["login", "authentication", "positive"]
+  }'
+
+# Test Case 2 - Registration Testing  
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Registrasi User Baru",
+    "description": "Memverifikasi proses registrasi user baru dengan data valid",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Buka halaman registrasi",
+        "expectedResult": "Form registrasi ditampilkan"
+      },
+      {
+        "step": "Isi nama lengkap: John Doe",
+        "expectedResult": "Nama terisi di field name"
+      },
+      {
+        "step": "Isi email: john@example.com",
+        "expectedResult": "Email terisi di field email"
+      },
+      {
+        "step": "Isi password: securepass123",
+        "expectedResult": "Password terisi dan disembunyikan"
+      },
+      {
+        "step": "Klik tombol Register",
+        "expectedResult": "Akun berhasil dibuat dan user mendapat konfirmasi"
+      }
+    ],
+    "expectedResult": "User baru berhasil terdaftar dalam sistem",
+    "tags": ["registration", "user-management", "positive"]
+  }'
+```
+
+### Step 2: Test RAG Generation
+
+#### Example 1: RAG untuk Login-related Test Case
+```bash
+# Prompt yang akan mencari referensi login test case
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk logout user dari sistem",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "preferredType": "positive",
+    "preferredPriority": "medium"
+  }'
+```
+
+**Expected RAG Response:**
+```json
+{
+  "name": "Test Logout User dari Sistem",
+  "description": "Memverifikasi proses logout user dari sistem",
+  "type": "positive",
+  "priority": "medium",
+  "steps": [
+    {
+      "step": "User sudah dalam keadaan login",
+      "expectedResult": "Dashboard user ditampilkan"
+    },
+    {
+      "step": "Klik menu profile atau user settings",
+      "expectedResult": "Dropdown menu ditampilkan"
+    },
+    {
+      "step": "Klik tombol Logout",
+      "expectedResult": "User berhasil logout dan diarahkan ke halaman login"
+    }
+  ],
+  "expectedResult": "User berhasil logout dan tidak dapat mengakses halaman yang memerlukan autentikasi",
+  "tags": ["logout", "authentication", "positive"],
+  "originalPrompt": "Buat test case untuk logout user dari sistem",
+  "aiGenerated": true,
+  "confidence": 0.85,
+  "aiGenerationMethod": "rag",
+  "ragReferences": [
+    {
+      "testCaseId": "cm123abc456",
+      "similarity": 0.82,
+      "testCase": {
+        "id": "cm123abc456",
+        "name": "Test Login dengan Email Valid",
+        "type": "positive",
+        "priority": "high",
+        "tags": ["login", "authentication"]
+      }
+    }
+  ]
+}
+```
+
+#### Example 2: RAG untuk Registration-related Test Case
+```bash
+# Prompt yang akan mencari referensi registration test case
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk registrasi dengan email yang sudah terdaftar",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "preferredType": "negative",
+    "preferredPriority": "high"
+  }'
+```
+
+#### Example 3: Generate and Save dengan RAG
+```bash
+# Langsung save ke database dengan RAG references
+curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk reset password user",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "context": "Aplikasi web dengan sistem user management",
+    "preferredType": "positive",
+    "preferredPriority": "medium"
+  }'
+```
+
+### Step 3: Verify RAG References
+```bash
+# Lihat test case yang baru dibuat beserta referensinya
+curl -X GET http://localhost:3000/testcases/{new-test-case-id}/with-reference
+```
+
+**Expected Response dengan References:**
+```json
+{
+  "id": "cm456def789",
+  "name": "Test Reset Password User",
+  "description": "Memverifikasi proses reset password user",
+  "type": "positive",
+  "priority": "medium",
+  "aiGenerated": true,
+  "aiGenerationMethod": "rag",
+  "ragReferences": [
+    {
+      "id": "ref123",
+      "targetId": "cm123abc456",
+      "similarityScore": 0.75,
+      "referenceType": "rag_retrieval",
+      "target": {
+        "id": "cm123abc456",
+        "name": "Test Login dengan Email Valid",
+        "type": "positive",
+        "priority": "high"
+      }
+    }
+  ],
+  "derivedCount": 0
+}
+```
+
+### Comparison: Pure AI vs RAG
+
+#### Pure AI Generation
+```bash
+# Generate tanpa RAG (Pure AI)
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk proses pembayaran",
+    "useRAG": false,
+    "preferredType": "positive",
+    "preferredPriority": "high"
+  }'
+```
+
+#### RAG Generation  
+```bash
+# Generate dengan RAG (akan mencari test case relevan)
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk proses pembayaran",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "preferredType": "positive", 
+    "preferredPriority": "high"
+  }'
 ```
 
 ### Search Test Cases
@@ -251,25 +480,45 @@ curl -X POST http://localhost:3000/testcases \
 # Search for authentication related test cases
 curl "http://localhost:3000/testcases/search?query=login%20authentication&minSimilarity=0.6&limit=5"
 
-# Search for API related test cases  
-curl "http://localhost:3000/testcases/search?query=API%20endpoint&minSimilarity=0.7&limit=3"
+# Search for registration related test cases
+curl "http://localhost:3000/testcases/search?query=user%20registration%20sign%20up&minSimilarity=0.5&limit=3"
 
-# Search for ecommerce functionality
-curl "http://localhost:3000/testcases/search?query=shopping%20cart%20checkout&minSimilarity=0.5&limit=10"
+# Search for logout functionality
+curl "http://localhost:3000/testcases/search?query=logout%20sign%20out&minSimilarity=0.6&limit=5"
 ```
 
-## Expected Similarity Scores
+## 📊 Expected Similarity Scores
 
-Ketika melakukan search dengan contoh test cases di atas:
+Ketika melakukan RAG generation dengan contoh test cases di atas:
 
-- **Query "login authentication"** → Test case login akan mendapat similarity ~0.85-0.95
-- **Query "shopping cart"** → Test case e-commerce akan mendapat similarity ~0.80-0.90  
-- **Query "API testing"** → Test case API akan mendapat similarity ~0.75-0.85
-- **Query "user management"** → Test case user management akan mendapat similarity ~0.80-0.90
+- **Query "logout user"** → Login test case akan mendapat similarity ~0.75-0.85
+- **Query "registrasi email terdaftar"** → Registration test case akan mendapat similarity ~0.80-0.90  
+- **Query "reset password"** → Login/Registration test cases akan mendapat similarity ~0.65-0.75
+- **Query "user authentication"** → Authentication test cases akan mendapat similarity ~0.85-0.95
 
 Similarity score berkisar antara 0-1, dimana:
 - **0.9-1.0**: Sangat relevan
 - **0.8-0.9**: Relevan  
+- **0.7-0.8**: Cukup relevan
+- **0.6-0.7**: Kurang relevan
+- **<0.6**: Tidak relevan
+
+## 🎯 RAG Best Practices
+
+1. **Threshold Setting**: 
+   - Gunakan 0.7+ untuk hasil yang sangat relevan
+   - Gunakan 0.6+ untuk cakupan yang lebih luas
+   - Gunakan 0.5+ untuk eksplorasi
+
+2. **Max References**: 
+   - 1-2 untuk fokus yang sangat spesifik
+   - 3-5 untuk balance antara context dan relevance
+   - 5+ untuk eksplorasi yang luas
+
+3. **Prompt Quality**:
+   - Gunakan keyword yang jelas dan spesifik
+   - Sertakan konteks domain jika perlu
+   - Hindari prompt yang terlalu umum atau ambigu
 - **0.7-0.8**: Cukup relevan
 - **0.6-0.7**: Kurang relevan
 - **<0.6**: Tidak relevan

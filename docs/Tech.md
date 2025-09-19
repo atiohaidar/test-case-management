@@ -1,4 +1,4 @@
-# Dokumentasi Teknis - Test Case Management System
+# Dokumentasi Teknis - Test Case Management System with RAG
 
 ## 🔧 Teknologi yang Digunakan
 
@@ -14,6 +14,7 @@
 ### AI/ML Stack
 - **FastAPI** (v0.115.0) - Python web framework untuk AI service
 - **Sentence Transformers** (v3.2.1) - Model untuk generate text embeddings
+- **Google Gemini API** - Large Language Model untuk test case generation
 - **Scikit-learn** (v1.5.2) - Machine learning utilities untuk similarity calculation
 - **NumPy** (v2.1.1) - Scientific computing library
 - **Uvicorn** - ASGI server untuk FastAPI
@@ -32,20 +33,35 @@
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## 🏗️ Arsitektur Sistem dengan RAG
 
 ### Overview Architecture
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Client/API    │    │   NestJS API    │    │  Python AI      │
-│   (HTTP/REST)   │◄──►│   (Backend)     │◄──►│   Service       │
+│   Frontend      │    │   NestJS API    │    │  Python AI      │
+│   (Client UI)   │◄──►│   (Backend)     │◄──►│   Service       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                        │
                                 ▼                        ▼
                         ┌─────────────────┐    ┌─────────────────┐
                         │   MySQL DB      │    │  ML Models      │
-                        │   (Prisma ORM)  │    │  (Transformers) │
+                        │   (Prisma ORM)  │    │  + Gemini AI    │
                         └─────────────────┘    └─────────────────┘
+
+```
+
+### RAG (Retrieval-Augmented Generation) Flow
+```
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌─────────────┐
+│  User Input │───►│ Semantic     │───►│ Retrieved   │───►│ Enhanced    │
+│  (Prompt)   │    │ Search       │    │ Test Cases  │    │ Prompt      │
+└─────────────┘    └──────────────┘    └─────────────┘    └─────────────┘
+                            │                                     │
+                            ▼                                     ▼
+                   ┌─────────────────┐                  ┌─────────────────┐
+                   │ Embedding Store │                  │ Gemini AI Model │
+                   │ (MySQL + Vector)│                  │ (Generation)    │
+                   └─────────────────┘                  └─────────────────┘
 ```
 
 ### 1. **Frontend Layer (Client)**
@@ -93,8 +109,9 @@ AppModule
 
 ---
 
-## 📊 Database Schema (Prisma)
+## 📊 Database Schema dengan RAG Support
 
+### Enhanced Prisma Schema
 ```prisma
 model TestCase {
   id             String            @id @default(cuid())
@@ -106,11 +123,39 @@ model TestCase {
   expectedResult String            @db.Text // Expected result
   tags           Json              // Array of string tags
   embedding      String?           @db.Text // AI-generated embeddings (JSON array)
-  referenceId    String?           // ID test case yang dijadikan referensi
+  referenceId    String?           // Backward compatibility - single reference
+  
+  // AI Generation Metadata
+  aiGenerated    Boolean           @default(false)  // Apakah dibuat dengan bantuan AI
+  originalPrompt String?           @db.Text         // Prompt asli yang digunakan untuk AI generation
+  aiConfidence   Float?                             // Confidence score dari AI (0-1)
+  aiSuggestions  String?           @db.Text         // Saran dari AI untuk improvement
+  aiGenerationMethod String?                        // "pure_ai" | "rag" | null
+  
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  
+
+  // Relations for multiple references
+  references     TestCaseReference[] @relation("SourceTestCase")
+  referencedBy   TestCaseReference[] @relation("TargetTestCase")
+
   @@map("testcases")
+}
+
+// NEW: Junction table untuk multiple references
+model TestCaseReference {
+  id               String    @id @default(cuid())
+  sourceId         String    // Test case yang dibuat
+  targetId         String    // Test case yang dijadikan referensi
+  similarityScore  Float?    // Similarity score dari RAG (0-1)
+  referenceType    String    // "manual" | "rag_retrieval"
+  createdAt        DateTime  @default(now())
+
+  source           TestCase  @relation("SourceTestCase", fields: [sourceId], references: [id], onDelete: Cascade)
+  target           TestCase  @relation("TargetTestCase", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId])
+  @@map("testcase_references")
 }
 
 enum TestCaseType {
@@ -125,11 +170,29 @@ enum TestCasePriority {
 }
 ```
 
-**TestStep Interface**:
+**Enhanced TestStep Interface**:
 ```typescript
 interface TestStep {
   step: string;           // Langkah yang harus dilakukan
   expectedResult: string; // Hasil yang diharapkan dari langkah ini
+}
+```
+
+### RAG Data Structures
+```typescript
+interface RAGReference {
+  testCaseId: string;    // ID test case yang direferensikan
+  similarity: number;    // Similarity score (0-1)
+  testCase: TestCase;    // Full test case data
+}
+
+interface AIGenerationMetadata {
+  aiGenerated: boolean;
+  originalPrompt?: string;
+  aiConfidence?: number;
+  aiSuggestions?: string;
+  aiGenerationMethod: 'pure_ai' | 'rag';
+  ragReferences: RAGReference[];
 }
 ```
 
@@ -234,13 +297,99 @@ POST /generate-embedding
 # Semantic Search
 POST /search
 {
-  "query": "search query",
-  "min_similarity": 0.7,
-  "limit": 10
-}
+---
+
+## 🤖 RAG (Retrieval-Augmented Generation) Implementation
+
+### RAG Architecture
+RAG menggabungkan pencarian semantik (retrieval) dengan AI generation untuk menghasilkan test case yang lebih konsisten dan berkualitas.
+
+#### Flow Process:
+1. **User Input**: User memberikan prompt untuk generate test case
+2. **Semantic Search**: Sistem mencari test case yang relevan menggunakan embedding similarity
+3. **Context Building**: Test case relevan dijadikan konteks untuk AI
+4. **Enhanced Generation**: AI menggunakan konteks untuk generate test case yang lebih baik
+5. **Reference Tracking**: Sistem menyimpan referensi test case yang digunakan
+
+### Enhanced API Endpoints untuk RAG
+
+#### Generate Test Case with RAG
+```bash
+# Pure AI Generation (tanpa RAG)
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk login dengan password salah",
+    "useRAG": false,
+    "preferredType": "negative",
+    "preferredPriority": "high"
+  }'
+
+# RAG-Enhanced Generation
+curl -X POST http://localhost:3000/testcases/generate-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk logout user dari sistem",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.7,
+    "maxRAGReferences": 3,
+    "preferredType": "positive",
+    "preferredPriority": "medium"
+  }'
 ```
 
----
+#### Generate and Save with RAG
+```bash
+curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Buat test case untuk reset password user",
+    "useRAG": true,
+    "ragSimilarityThreshold": 0.6,
+    "maxRAGReferences": 3,
+    "context": "Aplikasi web e-commerce dengan sistem user management",
+    "preferredType": "positive",
+    "preferredPriority": "medium"
+  }'
+```
+
+### RAG Parameters Explained
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `useRAG` | boolean | true | Enable/disable RAG functionality |
+| `ragSimilarityThreshold` | number (0-1) | 0.7 | Minimum similarity score untuk referensi |
+| `maxRAGReferences` | number (1-10) | 3 | Maksimal jumlah test case referensi |
+
+### RAG Response Format
+```json
+{
+  "name": "Test Logout User",
+  "description": "Memverifikasi proses logout user dari sistem",
+  "type": "positive",
+  "priority": "medium",
+  "steps": [...],
+  "expectedResult": "User berhasil logout dan diarahkan ke halaman login",
+  "tags": ["logout", "authentication"],
+  "originalPrompt": "Buat test case untuk logout user dari sistem",
+  "aiGenerated": true,
+  "confidence": 0.85,
+  "aiGenerationMethod": "rag",
+  "ragReferences": [
+    {
+      "testCaseId": "cm123abc456",
+      "similarity": 0.82,
+      "testCase": {
+        "id": "cm123abc456",
+        "name": "Test Login dengan Email Valid",
+        "type": "positive",
+        "priority": "high",
+        "tags": ["login", "authentication"]
+      }
+    }
+  ]
+}
+```
 
 ## 📋 CURL Examples
 

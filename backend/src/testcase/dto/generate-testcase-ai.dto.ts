@@ -30,7 +30,7 @@ export class GenerateTestCaseWithAIDto {
     preferredPriority?: TestCasePriority;
 
     // RAG Parameters
-    @ApiPropertyOptional({ 
+    @ApiPropertyOptional({
         description: 'Aktifkan/nonaktifkan RAG (Retrieval-Augmented Generation)',
         default: true
     })
@@ -38,7 +38,7 @@ export class GenerateTestCaseWithAIDto {
     @IsOptional()
     useRAG?: boolean = true;
 
-    @ApiPropertyOptional({ 
+    @ApiPropertyOptional({
         description: 'Threshold similarity minimum untuk RAG (0-1)',
         minimum: 0,
         maximum: 1,
@@ -50,7 +50,7 @@ export class GenerateTestCaseWithAIDto {
     @IsOptional()
     ragSimilarityThreshold?: number = 0.7;
 
-    @ApiPropertyOptional({ 
+    @ApiPropertyOptional({
         description: 'Maksimal jumlah referensi test case untuk RAG',
         minimum: 1,
         maximum: 10,
@@ -122,13 +122,13 @@ export class AIGeneratedTestCaseResponseDto {
     aiSuggestions?: string;
 
     // RAG Metadata
-    @ApiProperty({ 
+    @ApiProperty({
         description: 'Metode AI generation yang digunakan',
         enum: ['pure_ai', 'rag']
     })
     aiGenerationMethod: string;
 
-    @ApiProperty({ 
+    @ApiProperty({
         type: [RAGReferenceDto],
         description: 'Referensi test case yang digunakan dalam RAG'
     })

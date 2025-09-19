@@ -58,8 +58,8 @@ export class TestCaseController {
   }
 
   @Post('generate-and-save-with-ai')
-  @ApiOperation({ 
-    summary: 'Generate and save a test case using AI with optional RAG', 
+  @ApiOperation({
+    summary: 'Generate and save a test case using AI with optional RAG',
     description: 'Generate test case with AI and automatically save to database. Supports RAG for better context-aware generation.'
   })
   @ApiResponse({
