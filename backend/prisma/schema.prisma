@@ -35,7 +35,6 @@ model TestCase {
   expectedResult String            @db.Text
   tags           Json
   embedding      String?           @db.Text
-  referenceId    String?           // Backward compatibility - single reference
   
   // AI Generation Metadata
   aiGenerated    Boolean           @default(false)  // Apakah dibuat dengan bantuan AI
@@ -54,12 +53,13 @@ model TestCase {
   @@map("testcases")
 }
 
+// Enhanced junction table untuk semua jenis references
 model TestCaseReference {
   id               String    @id @default(cuid())
   sourceId         String    // Test case yang dibuat
   targetId         String    // Test case yang dijadikan referensi
   similarityScore  Float?    // Similarity score dari RAG (0-1)
-  referenceType    String    // "manual" | "rag_retrieval"
+  referenceType    String    // "manual" | "rag_retrieval" | "derived"
   createdAt        DateTime  @default(now())
 
   source           TestCase  @relation("SourceTestCase", fields: [sourceId], references: [id], onDelete: Cascade)

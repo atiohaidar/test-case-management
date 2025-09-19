@@ -50,11 +50,6 @@ export class CreateTestCaseDto {
   @IsString({ each: true })
   tags: string[];
 
-  @ApiPropertyOptional({ description: 'ID of test case used as reference for creating this test case' })
-  @IsString()
-  @IsOptional()
-  referenceId?: string;
-
   // AI Generation Metadata (Optional fields for when saving AI-generated test cases)
   @ApiPropertyOptional({ description: 'Indicates if this test case was generated with AI assistance' })
   @IsBoolean()

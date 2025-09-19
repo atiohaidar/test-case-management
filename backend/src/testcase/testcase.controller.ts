@@ -99,6 +99,26 @@ export class TestCaseController {
     return this.testCaseService.deriveFromTestCase(referenceId, createTestCaseDto);
   }
 
+  @Post(':sourceId/reference/:targetId')
+  @ApiOperation({ summary: 'Add a manual reference between two test cases' })
+  @ApiResponse({ status: 201, description: 'Reference added successfully' })
+  @ApiResponse({ status: 404, description: 'Source or target test case not found' })
+  @ApiResponse({ status: 409, description: 'Reference already exists' })
+  async addReference(
+    @Param('sourceId') sourceId: string,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.testCaseService.addManualReference(sourceId, targetId);
+  }
+
+  @Delete('reference/:referenceId')
+  @ApiOperation({ summary: 'Remove a reference between test cases' })
+  @ApiResponse({ status: 200, description: 'Reference removed successfully' })
+  @ApiResponse({ status: 404, description: 'Reference not found' })
+  async removeReference(@Param('referenceId') referenceId: string) {
+    return this.testCaseService.removeReference(referenceId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a test case by ID' })
   @ApiResponse({ status: 200, description: 'Test case found', type: TestCaseDto })

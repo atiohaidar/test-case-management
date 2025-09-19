@@ -30,19 +30,136 @@ graph TB
 
 ### Test Case Management
 
-| Endpoint | Method | Description | RAG Support |
+| Endpoint | Method | Description | References Support |
 |----------|--------|-------------|-------------|
-| `/testcases` | GET | Get all test cases | ❌ |
+| `/testcases` | GET | Get all test cases with references info | ✅ |
 | `/testcases` | POST | Create new test case | ❌ |
-| `/testcases/:id` | GET | Get specific test case | ❌ |
+| `/testcases/:id` | GET | Get specific test case with references | ✅ |
 | `/testcases/:id` | PATCH | Update test case | ❌ |
 | `/testcases/:id` | DELETE | Delete test case | ❌ |
 | `/testcases/search` | GET | Semantic search | ✅ |
 | `/testcases/generate-with-ai` | POST | Generate (preview only) | ✅ |
-| `/testcases/generate-and-save-with-ai` | POST | Generate and save | ✅ |
-| `/testcases/:id/with-reference` | GET | Get with references | ✅ |
-| `/testcases/:id/derived` | GET | Get derived test cases | ❌ |
-| `/testcases/derive/:referenceId` | POST | Create derived test case | ❌ |
+| `/testcases/generate-and-save-with-ai` | POST | Generate and save with RAG references | ✅ |
+
+### References & Derived Test Cases (New Unified System)
+
+| Endpoint | Method | Description | Reference Type |
+|----------|--------|-------------|-------------|
+| `/testcases/:id/references` | GET | Get all references from this test case | All Types |
+| `/testcases/:id/referenced-by` | GET | Get all test cases that reference this one | All Types |
+| `/testcases/:id/references` | POST | Add manual reference to existing test case | `manual` |
+| `/testcases/:id/references/:refId` | DELETE | Remove specific reference | All Types |
+| `/testcases/derive/:referenceId` | POST | Create derived test case (uses references) | `manual` |
+
+**Important Changes:**
+- ❌ **REMOVED**: Old `referenceId` field (deprecated)
+- ✅ **NEW**: Unified `TestCaseReference` system for all reference types
+- ✅ **Enhanced**: All references now have `referenceType`: `'manual' | 'rag_retrieval' | 'derived'`
+- ✅ **Traceability**: Complete bidirectional reference tracking
+
+### 🔗 Reference System Explained
+
+#### Reference Types
+```typescript
+type ReferenceType = 'manual' | 'rag_retrieval' | 'derived';
+
+interface TestCaseReference {
+  id: string;
+  sourceId: string;        // Test case yang nge-refer
+  targetId: string;        // Test case yang di-refer
+  similarityScore?: number; // Hanya untuk rag_retrieval
+  referenceType: ReferenceType;
+  createdAt: string;
+  
+  // Populated data
+  source: TestCase;        // Test case yang nge-refer
+  target: TestCase;        // Test case yang di-refer
+}
+```
+
+#### Reference Flow Scenarios
+
+**1. Manual Reference** (`referenceType: 'manual'`)
+- User manually menambahkan reference ke test case existing
+- Tidak ada similarity score
+- Berguna untuk logical grouping atau prerequisites
+
+**2. RAG Retrieval** (`referenceType: 'rag_retrieval'`)
+- Otomatis dibuat saat AI generation dengan RAG enabled
+- Ada similarity score (0-1)
+- Menunjukkan test case mana yang mempengaruhi AI generation
+
+**3. Derived Reference** (`referenceType: 'derived'`)
+- Dibuat saat user menggunakan "derive" feature
+- User membuat test case baru berdasarkan test case existing
+- Menunjukkan parent-child relationship
+
+#### Bidirectional Tracking
+```typescript
+// Test Case A references Test Case B
+const reference = {
+  sourceId: 'testcase-a-id',
+  targetId: 'testcase-b-id',
+  referenceType: 'manual'
+};
+
+// Queries:
+// GET /testcases/testcase-a-id/references     -> Returns Test Case B
+// GET /testcases/testcase-b-id/referenced-by -> Returns Test Case A
+```
+
+### 🔍 Semantic Search to References
+
+#### Search Flow untuk References
+1. **Semantic Search**: User mencari test case relevan
+2. **Review Results**: Melihat similarity scores
+3. **Select Reference**: Memilih test case untuk dijadikan reference
+4. **Add Reference**: Menambahkan manual reference atau derive new test case
+
+#### Example Implementation
+```typescript
+const searchAndReference = async (query: string, sourceTestCaseId: string) => {
+  // Step 1: Semantic search
+  const searchResults = await semanticSearch(query, 0.6, 10);
+  
+  // Step 2: User selects relevant test case
+  const selectedTestCase = searchResults[0]; // User selection
+  
+  // Step 3: Add reference
+  const reference = await addManualReference(sourceTestCaseId, {
+    targetId: selectedTestCase.testCase.id,
+    referenceType: 'manual'
+  });
+  
+  return reference;
+};
+```
+
+### 📊 Test Case with Complete Reference Data
+
+#### Enhanced Test Case List Item
+```typescript
+interface TestCaseListItem {
+  id: string;
+  name: string;
+  description: string;
+  type: 'positive' | 'negative';
+  priority: 'high' | 'medium' | 'low';
+  tags: string[];
+  aiGenerated: boolean;
+  aiGenerationMethod?: 'pure_ai' | 'rag';
+  
+  // Reference metadata (counts)
+  referencesCount: number;      // Berapa banyak test case yang ini refer
+  referencedByCount: number;    // Berapa banyak test case yang refer ke ini
+  ragReferencesCount: number;   // Berapa banyak RAG references
+  manualReferencesCount: number; // Berapa banyak manual references
+  derivedFromCount: number;     // Berapa banyak derived dari ini
+  
+  createdAt: string;
+  updatedAt: string;
+}
+```
 
 ## 📱 UI Components Requirements
 
@@ -64,9 +181,17 @@ interface TestCaseListItem {
 
 **UI Elements:**
 - Badge untuk AI-generated test cases
-- Icon untuk RAG vs Pure AI
-- Filter by AI generation method
+- Icon untuk RAG vs Pure AI vs Manual
+- Reference count indicators (visual badges)
+- Filter by AI generation method dan reference type
 - Search bar dengan semantic search capability
+
+**Reference Indicators:**
+- 🔗 Reference count badge (e.g., "→ 3" untuk outgoing references)
+- 📥 Referenced-by count badge (e.g., "← 5" untuk incoming references)
+- 🤖 RAG reference indicator
+- 👤 Manual reference indicator
+- 🔄 Derived indicator
 
 ### 2. AI Generation Form
 ```typescript
@@ -136,12 +261,13 @@ interface TestCaseDetail {
   aiSuggestions?: string;
   aiGenerationMethod?: 'pure_ai' | 'rag';
   
-  // References
+  // Reference System (bidirectional)
+  // Test cases this one refers to
   references?: Array<{
     id: string;
     targetId: string;
     similarityScore?: number;
-    referenceType: 'manual' | 'rag_retrieval';
+    referenceType: 'manual' | 'rag_retrieval' | 'derived';
     target: {
       id: string;
       name: string;
@@ -150,7 +276,20 @@ interface TestCaseDetail {
     };
   }>;
   
-  derivedCount?: number;
+  // Test cases that refer to this one
+  referencedBy?: Array<{
+    id: string;
+    sourceId: string;
+    similarityScore?: number;
+    referenceType: 'manual' | 'rag_retrieval' | 'derived';
+    source: {
+      id: string;
+      name: string;
+      type: string;
+      priority: string;
+    };
+  }>;
+  
   createdAt: string;
   updatedAt: string;
 }
@@ -158,11 +297,30 @@ interface TestCaseDetail {
 
 **UI Elements:**
 - AI generation metadata section (collapsible)
-- RAG references section with similarity scores
-- Original prompt display (if AI-generated)
-- AI confidence indicator
-- Links to referenced test cases
-- "Generate Similar" button untuk create derived test cases
+  - Show AI confidence score
+  - Display generation method (pure AI vs RAG)
+  - Show original prompt if AI-generated
+  
+- **Reference System Display:**
+  - **"References" Section**: Test cases this one refers to
+    - Manual references: Clickable links with "Manual" badge
+    - RAG references: Show similarity scores with "RAG" badge
+    - Derived references: Show "Derived from" with "Generated" badge
+  
+  - **"Referenced By" Section**: Test cases that reference this one
+    - Show count of derived test cases
+    - Show manual references to this test case
+    - List all references with type indicators
+  
+- **Action Buttons:**
+  - "Generate Similar" button (uses this test case as RAG context)
+  - "Add Manual Reference" button
+  - "View Reference Network" button (shows relationship diagram)
+
+**Reference Indicators:**
+- 🔗 Manual Reference (user-created)
+- 🎯 RAG Reference (AI-found similarity)
+- 🌱 Derived (AI-generated based on this)
 
 ## 🔧 Implementation Details
 
@@ -232,9 +390,10 @@ interface TestCaseState {
   generationPreview: TestCaseDetail | null;
   ragReferences: RAGReference[];
   
-  // Search
+  // Search & References
   searchResults: SearchResult[];
   searchLoading: boolean;
+  referenceNetwork: TestCaseReference[];
   
   // Filters
   filters: {
@@ -243,6 +402,8 @@ interface TestCaseState {
     aiGenerated?: boolean;
     aiGenerationMethod?: 'pure_ai' | 'rag';
     tags?: string[];
+    hasReferences?: boolean;
+    isDerived?: boolean;
   };
 }
 ```
@@ -442,15 +603,18 @@ interface SearchFilters {
    - [ ] Verify backend API connection
 
 2. **Implement Core Features**
-   - [ ] Test case list with AI indicators
+   - [ ] Test case list with AI indicators and reference counts
    - [ ] AI generation form with RAG settings
-   - [ ] RAG references display
+   - [ ] RAG references display with similarity scores
    - [ ] Semantic search integration
+   - [ ] Reference system (manual, RAG, derived)
 
 3. **Advanced Features**
    - [ ] Real-time generation preview
    - [ ] Similarity score visualization
-   - [ ] Reference navigation
+   - [ ] Bidirectional reference navigation
+   - [ ] Reference network diagram
+   - [ ] Derived test case tracking
    - [ ] Analytics dashboard
 
 4. **Testing & Polish**
@@ -473,9 +637,14 @@ DELETE /testcases/:id                 // Delete test case
 POST   /testcases/generate-with-ai               // Generate preview
 POST   /testcases/generate-and-save-with-ai      // Generate and save
 GET    /testcases/search                         // Semantic search
-GET    /testcases/:id/with-reference             // Get with references
+
+// Reference Management (Unified System)
+GET    /testcases/:id/references                 // Get all references
+POST   /testcases/:id/references                 // Add manual reference
+DELETE /testcases/:id/references/:referenceId   // Remove reference
+GET    /testcases/:id/referenced-by              // Get reverse references
 GET    /testcases/:id/derived                    // Get derived test cases
-POST   /testcases/derive/:referenceId            // Create derived
+POST   /testcases/derive/:referenceId            // Create derived test case
 ```
 
 ## 📚 Additional Resources
