@@ -86,9 +86,22 @@ AppModule
 ├── PrismaService (Database connection)
 └── TestCaseModule
     ├── TestCaseController (HTTP endpoints)
-    ├── TestCaseService (Business logic)
+    ├── TestCaseService (Main orchestrator)
+    ├── services/
+    │   ├── TestCaseCrudService (CRUD operations)
+    │   ├── TestCaseAIService (AI integration)
+    │   ├── TestCaseSearchService (Semantic search)
+    │   ├── TestCaseReferenceService (Reference management)
+    │   ├── TestCaseEmbeddingService (Embedding generation)
+    │   └── interfaces.ts (Service contracts)
     └── DTOs (Data validation)
 ```
+
+**Service Architecture Benefits**:
+- **Separation of Concerns**: Each service handles specific domain logic
+- **Interface-based DI**: Better testability and maintainability
+- **Modular Design**: Easier to extend and modify individual components
+- **Focused Responsibilities**: Smaller, more manageable code units
 
 ### 3. **AI Service Layer (Python/FastAPI)**
 **Port**: 8000
