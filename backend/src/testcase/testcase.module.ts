@@ -55,4 +55,4 @@ import {
     'ITestCaseEmbeddingService',
   ],
 })
-export class TestCaseModule {}
+export class TestCaseModule { }

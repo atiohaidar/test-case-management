@@ -5,261 +5,261 @@ import { ITestCaseReferenceService, ITestCaseEmbeddingService } from './interfac
 
 @Injectable()
 export class TestCaseReferenceService implements ITestCaseReferenceService {
-  constructor(
-    private prisma: PrismaService,
-    @Inject('ITestCaseEmbeddingService')
-    private embeddingService: ITestCaseEmbeddingService,
-  ) { }
+    constructor(
+        private prisma: PrismaService,
+        @Inject('ITestCaseEmbeddingService')
+        private embeddingService: ITestCaseEmbeddingService,
+    ) { }
 
-  async getWithReference(id: string) {
-    const testCase = await this.prisma.testCase.findUnique({ where: { id } });
-    if (!testCase) {
-      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
-    }
-
-    // Get all references where this test case is the source
-    const references = await this.prisma.testCaseReference.findMany({
-      where: { sourceId: id },
-      include: {
-        target: {
-          select: { id: true, name: true, type: true, priority: true, createdAt: true }
+    async getWithReference(id: string) {
+        const testCase = await this.prisma.testCase.findUnique({ where: { id } });
+        if (!testCase) {
+            throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
 
-    // Get count of derived test cases (where this test case is the target)
-    const derivedCount = await this.prisma.testCaseReference.count({
-      where: {
-        targetId: id,
-        referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
-      }
-    });
+        // Get all references where this test case is the source
+        const references = await this.prisma.testCaseReference.findMany({
+            where: { sourceId: id },
+            include: {
+                target: {
+                    select: { id: true, name: true, type: true, priority: true, createdAt: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
-    // Remove embedding from returned test case
-    const { embedding: _, ...rest } = testCase;
+        // Get count of derived test cases (where this test case is the target)
+        const derivedCount = await this.prisma.testCaseReference.count({
+            where: {
+                targetId: id,
+                referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
+            }
+        });
 
-    return {
-      ...rest,
-      references: references.map(ref => ({
-        id: ref.id,
-        targetId: ref.targetId,
-        referenceType: ref.referenceType,
-        similarityScore: ref.similarityScore,
-        createdAt: ref.createdAt,
-        target: ref.target
-      })),
-      derivedCount
-    };
-  }
+        // Remove embedding from returned test case
+        const { embedding: _, ...rest } = testCase;
 
-  async getDerivedTestCases(id: string) {
-    // Check if test case exists
-    const existingTestCase = await this.prisma.testCase.findUnique({ where: { id } });
-    if (!existingTestCase) {
-      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+        return {
+            ...rest,
+            references: references.map(ref => ({
+                id: ref.id,
+                targetId: ref.targetId,
+                referenceType: ref.referenceType,
+                similarityScore: ref.similarityScore,
+                createdAt: ref.createdAt,
+                target: ref.target
+            })),
+            derivedCount
+        };
     }
 
-    // Get all test cases that reference this one as derived or manual reference
-    const derivedReferences = await this.prisma.testCaseReference.findMany({
-      where: {
-        targetId: id,
-        referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
-      },
-      include: {
-        source: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    // Remove embeddings from returned test cases and include reference metadata
-    return derivedReferences.map(ref => {
-      const { embedding, ...testCase } = ref.source;
-      return {
-        ...testCase,
-        referenceInfo: {
-          id: ref.id,
-          referenceType: ref.referenceType,
-          similarityScore: ref.similarityScore,
-          createdAt: ref.createdAt
+    async getDerivedTestCases(id: string) {
+        // Check if test case exists
+        const existingTestCase = await this.prisma.testCase.findUnique({ where: { id } });
+        if (!existingTestCase) {
+            throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
         }
-      };
-    });
-  }
 
-  async getFullDetail(id: string) {
-    // Check if test case exists
-    const testCase = await this.prisma.testCase.findUnique({ where: { id } });
-    if (!testCase) {
-      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+        // Get all test cases that reference this one as derived or manual reference
+        const derivedReferences = await this.prisma.testCaseReference.findMany({
+            where: {
+                targetId: id,
+                referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
+            },
+            include: {
+                source: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Remove embeddings from returned test cases and include reference metadata
+        return derivedReferences.map(ref => {
+            const { embedding, ...testCase } = ref.source;
+            return {
+                ...testCase,
+                referenceInfo: {
+                    id: ref.id,
+                    referenceType: ref.referenceType,
+                    similarityScore: ref.similarityScore,
+                    createdAt: ref.createdAt
+                }
+            };
+        });
     }
 
-    // Get all references where this test case is the source (outgoing references)
-    const references = await this.prisma.testCaseReference.findMany({
-      where: { sourceId: id },
-      include: {
-        target: {
-          select: { id: true, name: true, type: true, priority: true, createdAt: true }
+    async getFullDetail(id: string) {
+        // Check if test case exists
+        const testCase = await this.prisma.testCase.findUnique({ where: { id } });
+        if (!testCase) {
+            throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
 
-    // Get all test cases that reference this one (incoming references/derived)
-    const derivedReferences = await this.prisma.testCaseReference.findMany({
-      where: {
-        targetId: id,
-        referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
-      },
-      include: {
-        source: {
-          select: { id: true, name: true, type: true, priority: true, createdAt: true, aiGenerated: true }
+        // Get all references where this test case is the source (outgoing references)
+        const references = await this.prisma.testCaseReference.findMany({
+            where: { sourceId: id },
+            include: {
+                target: {
+                    select: { id: true, name: true, type: true, priority: true, createdAt: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Get all test cases that reference this one (incoming references/derived)
+        const derivedReferences = await this.prisma.testCaseReference.findMany({
+            where: {
+                targetId: id,
+                referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
+            },
+            include: {
+                source: {
+                    select: { id: true, name: true, type: true, priority: true, createdAt: true, aiGenerated: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Remove embedding from returned test case
+        const { embedding: _, ...rest } = testCase;
+
+        return {
+            ...rest,
+            // Outgoing references (test cases this one refers to)
+            references: references.map(ref => ({
+                id: ref.id,
+                targetId: ref.targetId,
+                referenceType: ref.referenceType,
+                similarityScore: ref.similarityScore,
+                createdAt: ref.createdAt,
+                target: ref.target
+            })),
+            // Incoming references (test cases that refer to this one)
+            derivedTestCases: derivedReferences.map(ref => ({
+                id: ref.source.id,
+                name: ref.source.name,
+                type: ref.source.type,
+                priority: ref.source.priority,
+                createdAt: ref.source.createdAt,
+                aiGenerated: ref.source.aiGenerated,
+                referenceInfo: {
+                    id: ref.id,
+                    referenceType: ref.referenceType,
+                    similarityScore: ref.similarityScore,
+                    createdAt: ref.createdAt
+                }
+            })),
+            // Summary counts
+            referencesCount: references.length,
+            derivedCount: derivedReferences.length,
+        };
+    }
+
+    async deriveFromTestCase(referenceId: string, createTestCaseDto: CreateTestCaseDto) {
+        // Get reference test case
+        const referenceTestCase = await this.prisma.testCase.findUnique({
+            where: { id: referenceId }
+        });
+
+        if (!referenceTestCase) {
+            throw new HttpException('Reference test case not found', HttpStatus.NOT_FOUND);
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
 
-    // Remove embedding from returned test case
-    const { embedding: _, ...rest } = testCase;
+        // Merge reference data with new data (new data takes priority)
+        const mergedData: CreateTestCaseDto = {
+            name: createTestCaseDto.name || referenceTestCase.name,
+            description: createTestCaseDto.description || referenceTestCase.description,
+            type: createTestCaseDto.type || (referenceTestCase.type as any),
+            priority: createTestCaseDto.priority || (referenceTestCase.priority as any),
+            steps: createTestCaseDto.steps || (referenceTestCase.steps as any),
+            expectedResult: createTestCaseDto.expectedResult || referenceTestCase.expectedResult,
+            tags: createTestCaseDto.tags || (referenceTestCase.tags as any),
+        };
 
-    return {
-      ...rest,
-      // Outgoing references (test cases this one refers to)
-      references: references.map(ref => ({
-        id: ref.id,
-        targetId: ref.targetId,
-        referenceType: ref.referenceType,
-        similarityScore: ref.similarityScore,
-        createdAt: ref.createdAt,
-        target: ref.target
-      })),
-      // Incoming references (test cases that refer to this one)
-      derivedTestCases: derivedReferences.map(ref => ({
-        id: ref.source.id,
-        name: ref.source.name,
-        type: ref.source.type,
-        priority: ref.source.priority,
-        createdAt: ref.source.createdAt,
-        aiGenerated: ref.source.aiGenerated,
-        referenceInfo: {
-          id: ref.id,
-          referenceType: ref.referenceType,
-          similarityScore: ref.similarityScore,
-          createdAt: ref.createdAt
+        // Create the new test case directly
+        const embedding = await this.embeddingService.generateEmbedding(mergedData);
+
+        const newTestCase = await this.prisma.testCase.create({
+            data: {
+                name: mergedData.name,
+                description: mergedData.description,
+                type: mergedData.type,
+                priority: mergedData.priority,
+                steps: mergedData.steps as any,
+                expectedResult: mergedData.expectedResult,
+                tags: mergedData.tags as any,
+                embedding: JSON.stringify(embedding),
+                aiGenerated: false, // Derived manually, not AI generated
+            } as any,
+        });
+
+        // Create reference relationship
+        await this.prisma.testCaseReference.create({
+            data: {
+                sourceId: newTestCase.id,
+                targetId: referenceId,
+                referenceType: 'derived',
+                similarityScore: null, // No similarity score for manual derivation
+            },
+        });
+
+        // Remove embedding from returned test case
+        const { embedding: _, ...rest } = newTestCase;
+        return rest;
+    }
+
+    async addManualReference(sourceId: string, targetId: string) {
+        // Validate both test cases exist
+        const [sourceTestCase, targetTestCase] = await Promise.all([
+            this.prisma.testCase.findUnique({ where: { id: sourceId } }),
+            this.prisma.testCase.findUnique({ where: { id: targetId } })
+        ]);
+
+        if (!sourceTestCase) {
+            throw new HttpException('Source test case not found', HttpStatus.NOT_FOUND);
         }
-      })),
-      // Summary counts
-      referencesCount: references.length,
-      derivedCount: derivedReferences.length,
-    };
-  }
+        if (!targetTestCase) {
+            throw new HttpException('Target test case not found', HttpStatus.NOT_FOUND);
+        }
 
-  async deriveFromTestCase(referenceId: string, createTestCaseDto: CreateTestCaseDto) {
-    // Get reference test case
-    const referenceTestCase = await this.prisma.testCase.findUnique({
-      where: { id: referenceId }
-    });
+        // Check if reference already exists
+        const existingReference = await this.prisma.testCaseReference.findFirst({
+            where: {
+                sourceId,
+                targetId,
+                referenceType: 'manual_reference'
+            }
+        });
 
-    if (!referenceTestCase) {
-      throw new HttpException('Reference test case not found', HttpStatus.NOT_FOUND);
+        if (existingReference) {
+            throw new HttpException('Reference already exists', HttpStatus.CONFLICT);
+        }
+
+        // Create reference relationship
+        const reference = await this.prisma.testCaseReference.create({
+            data: {
+                sourceId,
+                targetId,
+                referenceType: 'manual_reference',
+                similarityScore: null,
+            },
+        });
+
+        return reference;
     }
 
-    // Merge reference data with new data (new data takes priority)
-    const mergedData: CreateTestCaseDto = {
-      name: createTestCaseDto.name || referenceTestCase.name,
-      description: createTestCaseDto.description || referenceTestCase.description,
-      type: createTestCaseDto.type || (referenceTestCase.type as any),
-      priority: createTestCaseDto.priority || (referenceTestCase.priority as any),
-      steps: createTestCaseDto.steps || (referenceTestCase.steps as any),
-      expectedResult: createTestCaseDto.expectedResult || referenceTestCase.expectedResult,
-      tags: createTestCaseDto.tags || (referenceTestCase.tags as any),
-    };
+    async removeReference(referenceId: string) {
+        const reference = await this.prisma.testCaseReference.findUnique({
+            where: { id: referenceId }
+        });
 
-    // Create the new test case directly
-    const embedding = await this.embeddingService.generateEmbedding(mergedData);
-    
-    const newTestCase = await this.prisma.testCase.create({
-      data: {
-        name: mergedData.name,
-        description: mergedData.description,
-        type: mergedData.type,
-        priority: mergedData.priority,
-        steps: mergedData.steps as any,
-        expectedResult: mergedData.expectedResult,
-        tags: mergedData.tags as any,
-        embedding: JSON.stringify(embedding),
-        aiGenerated: false, // Derived manually, not AI generated
-      } as any,
-    });
+        if (!reference) {
+            throw new HttpException('Reference not found', HttpStatus.NOT_FOUND);
+        }
 
-    // Create reference relationship
-    await this.prisma.testCaseReference.create({
-      data: {
-        sourceId: newTestCase.id,
-        targetId: referenceId,
-        referenceType: 'derived',
-        similarityScore: null, // No similarity score for manual derivation
-      },
-    });
+        await this.prisma.testCaseReference.delete({
+            where: { id: referenceId }
+        });
 
-    // Remove embedding from returned test case
-    const { embedding: _, ...rest } = newTestCase;
-    return rest;
-  }
-
-  async addManualReference(sourceId: string, targetId: string) {
-    // Validate both test cases exist
-    const [sourceTestCase, targetTestCase] = await Promise.all([
-      this.prisma.testCase.findUnique({ where: { id: sourceId } }),
-      this.prisma.testCase.findUnique({ where: { id: targetId } })
-    ]);
-
-    if (!sourceTestCase) {
-      throw new HttpException('Source test case not found', HttpStatus.NOT_FOUND);
+        return { message: 'Reference removed successfully' };
     }
-    if (!targetTestCase) {
-      throw new HttpException('Target test case not found', HttpStatus.NOT_FOUND);
-    }
-
-    // Check if reference already exists
-    const existingReference = await this.prisma.testCaseReference.findFirst({
-      where: {
-        sourceId,
-        targetId,
-        referenceType: 'manual_reference'
-      }
-    });
-
-    if (existingReference) {
-      throw new HttpException('Reference already exists', HttpStatus.CONFLICT);
-    }
-
-    // Create reference relationship
-    const reference = await this.prisma.testCaseReference.create({
-      data: {
-        sourceId,
-        targetId,
-        referenceType: 'manual_reference',
-        similarityScore: null,
-      },
-    });
-
-    return reference;
-  }
-
-  async removeReference(referenceId: string) {
-    const reference = await this.prisma.testCaseReference.findUnique({
-      where: { id: referenceId }
-    });
-
-    if (!reference) {
-      throw new HttpException('Reference not found', HttpStatus.NOT_FOUND);
-    }
-
-    await this.prisma.testCaseReference.delete({
-      where: { id: referenceId }
-    });
-
-    return { message: 'Reference removed successfully' };
-  }
 }
