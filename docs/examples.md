@@ -417,7 +417,13 @@ curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
 curl -X GET http://localhost:3000/testcases/{new-test-case-id}/with-reference
 ```
 
-**Expected Response dengan References:**
+### Step 4: Get Complete Reference & Derived Information
+```bash
+# Lihat test case dengan informasi lengkap (references + derived)
+curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
+```
+
+**Expected Response dengan Complete Information:**
 ```json
 {
   "id": "cm456def789",
@@ -426,8 +432,70 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/with-reference
   "type": "positive",
   "priority": "medium",
   "aiGenerated": true,
+  "originalPrompt": "Buat test case untuk reset password user",
+  "aiConfidence": 0.87,
+  "createdAt": "2025-09-19T10:30:00Z",
+  "updatedAt": "2025-09-19T10:30:00Z",
+  
+  // Outgoing references (test cases this one refers to)
+  "references": [
+    {
+      "id": "ref123",
+      "targetId": "cm123abc456",
+      "referenceType": "rag_retrieval",
+      "similarityScore": 0.75,
+      "createdAt": "2025-09-19T10:30:00Z",
+      "target": {
+        "id": "cm123abc456",
+        "name": "Test Login dengan Email Valid",
+        "type": "positive",
+        "priority": "high",
+        "createdAt": "2025-09-19T09:00:00Z"
+      }
+    }
+  ],
+  
+  // Incoming references (test cases that reference this one)
+  "derivedTestCases": [
+    {
+      "id": "cm789ghi012",
+      "name": "Test Reset Password dengan Email Invalid",
+      "type": "negative",
+      "priority": "medium",
+      "createdAt": "2025-09-19T11:00:00Z",
+      "aiGenerated": true,
+      "referenceInfo": {
+        "id": "ref456",
+        "referenceType": "derived",
+        "similarityScore": null,
+        "createdAt": "2025-09-19T11:00:00Z"
+      }
+    }
+  ],
+  
+  // Summary counts
+  "referencesCount": 1,
+  "derivedCount": 1
+}
+```
+
+**Use Cases untuk `/full` Endpoint:**
+- **Complete Test Case Analysis**: Melihat seluruh network relationship
+- **Quality Assurance**: Menganalisis consistency berdasarkan references
+- **Test Case Dependencies**: Memahami impact analysis saat ada perubahan
+- **AI Generation Review**: Melihat kualitas RAG retrieval dan derived test cases
+
+**Expected Response dengan References:**
+```json
+{
+  "id": "cm456def789",
+  "name": "Test Reset Password User", 
+  "description": "Memverifikasi proses reset password user",
+  "type": "positive",
+  "priority": "medium",
+  "aiGenerated": true,
   "aiGenerationMethod": "rag",
-  "ragReferences": [
+  "references": [
     {
       "id": "ref123",
       "targetId": "cm123abc456",
@@ -441,7 +509,7 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/with-reference
       }
     }
   ],
-  "derivedCount": 0
+  "derivedCount": 1
 }
 ```
 

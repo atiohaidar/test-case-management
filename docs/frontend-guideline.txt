@@ -47,6 +47,7 @@ graph TB
 |----------|--------|-------------|-------------|
 | `/testcases/:id/references` | GET | Get all references from this test case | All Types |
 | `/testcases/:id/referenced-by` | GET | Get all test cases that reference this one | All Types |
+| `/testcases/:id/full` | GET | Get complete test case with references & derived | All Types |
 | `/testcases/:id/references` | POST | Add manual reference to existing test case | `manual` |
 | `/testcases/:id/references/:refId` | DELETE | Remove specific reference | All Types |
 | `/testcases/derive/:referenceId` | POST | Create derived test case (uses references) | `manual` |
@@ -374,6 +375,39 @@ const semanticSearch = async (query: string, minSimilarity = 0.7, limit = 10) =>
 };
 ```
 
+#### Get Test Case with Complete References
+```typescript
+const getTestCaseFullDetail = async (id: string) => {
+  const response = await fetch(`/api/testcases/${id}/full`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch test case full detail');
+  }
+  
+  return response.json();
+};
+
+// Usage example
+const loadTestCaseNetwork = async (testCaseId: string) => {
+  try {
+    const fullDetail = await getTestCaseFullDetail(testCaseId);
+    
+    // Display outgoing references
+    console.log('References:', fullDetail.references);
+    
+    // Display incoming references (derived test cases)
+    console.log('Derived test cases:', fullDetail.derivedTestCases);
+    
+    // Show summary counts
+    console.log(`Outgoing: ${fullDetail.referencesCount}, Incoming: ${fullDetail.derivedCount}`);
+    
+    return fullDetail;
+  } catch (error) {
+    console.error('Error loading test case network:', error);
+  }
+};
+```
+
 ### 2. State Management
 
 #### Redux/Zustand Store Structure
@@ -643,6 +677,7 @@ GET    /testcases/:id/references                 // Get all references
 POST   /testcases/:id/references                 // Add manual reference
 DELETE /testcases/:id/references/:referenceId   // Remove reference
 GET    /testcases/:id/referenced-by              // Get reverse references
+GET    /testcases/:id/full                       // Get complete references & derived
 GET    /testcases/:id/derived                    // Get derived test cases
 POST   /testcases/derive/:referenceId            // Create derived test case
 ```

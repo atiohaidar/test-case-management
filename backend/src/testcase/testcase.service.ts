@@ -188,6 +188,73 @@ export class TestCaseService {
     });
   }
 
+  async getFullDetail(id: string) {
+    // Check if test case exists
+    const testCase = await this.prisma.testCase.findUnique({ where: { id } });
+    if (!testCase) {
+      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Get all references where this test case is the source (outgoing references)
+    const references = await this.prisma.testCaseReference.findMany({
+      where: { sourceId: id },
+      include: {
+        target: {
+          select: { id: true, name: true, type: true, priority: true, createdAt: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Get all test cases that reference this one (incoming references/derived)
+    const derivedReferences = await this.prisma.testCaseReference.findMany({
+      where: {
+        targetId: id,
+        referenceType: { in: ['manual_reference', 'derived', 'rag_retrieval'] }
+      },
+      include: {
+        source: {
+          select: { id: true, name: true, type: true, priority: true, createdAt: true, aiGenerated: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Remove embedding from returned test case
+    const { embedding: _, ...rest } = testCase;
+
+    return {
+      ...rest,
+      // Outgoing references (test cases this one refers to)
+      references: references.map(ref => ({
+        id: ref.id,
+        targetId: ref.targetId,
+        referenceType: ref.referenceType,
+        similarityScore: ref.similarityScore,
+        createdAt: ref.createdAt,
+        target: ref.target
+      })),
+      // Incoming references (test cases that refer to this one)
+      derivedTestCases: derivedReferences.map(ref => ({
+        id: ref.source.id,
+        name: ref.source.name,
+        type: ref.source.type,
+        priority: ref.source.priority,
+        createdAt: ref.source.createdAt,
+        aiGenerated: ref.source.aiGenerated,
+        referenceInfo: {
+          id: ref.id,
+          referenceType: ref.referenceType,
+          similarityScore: ref.similarityScore,
+          createdAt: ref.createdAt
+        }
+      })),
+      // Summary counts
+      referencesCount: references.length,
+      derivedCount: derivedReferences.length,
+    };
+  }
+
   async deriveFromTestCase(referenceId: string, createTestCaseDto: CreateTestCaseDto) {
     // Get reference test case
     const referenceTestCase = await this.prisma.testCase.findUnique({

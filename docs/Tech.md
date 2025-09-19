@@ -270,6 +270,9 @@ GET /testcases/:id
 # Get Test Case with Reference Info
 GET /testcases/:id/with-reference
 
+# Get Test Case with Complete Reference & Derived Info
+GET /testcases/:id/full
+
 # Get Derived Test Cases
 GET /testcases/:id/derived
 
@@ -436,12 +439,82 @@ curl -X GET http://localhost:3000/testcases/{test-case-id}
 curl -X GET http://localhost:3000/testcases/{test-case-id}/with-reference
 ```
 
-### 5. **Search Test Cases (Semantic)**
+### 5. **Get Test Case with Complete Reference & Derived Info**
+```bash
+curl -X GET http://localhost:3000/testcases/{test-case-id}/full
+```
+
+**Response Structure:**
+```json
+{
+  "id": "uuid",
+  "name": "Test Case Name",
+  "description": "Test description",
+  "type": "positive",
+  "priority": "high",
+  "steps": [...],
+  "expectedResult": "Expected result",
+  "tags": ["tag1", "tag2"],
+  "aiGenerated": true,
+  "originalPrompt": "Original AI prompt",
+  "aiConfidence": 0.95,
+  "createdAt": "2025-09-19T10:00:00Z",
+  "updatedAt": "2025-09-19T10:00:00Z",
+  
+  // Outgoing References (test cases this one refers to)
+  "references": [
+    {
+      "id": "ref-uuid",
+      "targetId": "target-uuid",
+      "referenceType": "rag_retrieval",
+      "similarityScore": 0.85,
+      "createdAt": "2025-09-19T10:00:00Z",
+      "target": {
+        "id": "target-uuid",
+        "name": "Referenced Test Case",
+        "type": "positive",
+        "priority": "high",
+        "createdAt": "2025-09-19T09:00:00Z"
+      }
+    }
+  ],
+  
+  // Incoming References (test cases that refer to this one)
+  "derivedTestCases": [
+    {
+      "id": "derived-uuid",
+      "name": "Derived Test Case",
+      "type": "negative",
+      "priority": "medium",
+      "createdAt": "2025-09-19T11:00:00Z",
+      "aiGenerated": true,
+      "referenceInfo": {
+        "id": "ref-uuid",
+        "referenceType": "derived",
+        "similarityScore": null,
+        "createdAt": "2025-09-19T11:00:00Z"
+      }
+    }
+  ],
+  
+  // Summary counts
+  "referencesCount": 1,
+  "derivedCount": 1
+}
+```
+
+**Use Cases:**
+- **UI Detail View**: Menampilkan test case lengkap dengan network references
+- **Dependency Analysis**: Melihat test case mana yang mempengaruhi atau dipengaruhi
+- **Quality Review**: Menganalisis kualitas AI generation berdasarkan references
+- **Reference Tracking**: Memahami relationship antara test cases
+
+### 6. **Search Test Cases (Semantic)**
 ```bash
 curl -X GET "http://localhost:3000/testcases/search?query=login%20authentication&minSimilarity=0.7&limit=5"
 ```
 
-### 6. **Create Test Case from Reference (Derive)**
+### 7. **Create Test Case from Reference (Derive)**
 ```bash
 curl -X POST http://localhost:3000/testcases/derive/{reference-test-case-id} \
   -H "Content-Type: application/json" \

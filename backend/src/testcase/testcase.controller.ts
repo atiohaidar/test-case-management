@@ -18,6 +18,7 @@ import { SearchTestCaseDto, SearchResultDto } from './dto/search-testcase.dto';
 import { GenerateTestCaseWithAIDto, AIGeneratedTestCaseResponseDto } from './dto/generate-testcase-ai.dto';
 import { TestCaseDto } from './entities/testcase.entity';
 import { TestCaseWithReferenceDto } from './dto/testcase-with-reference.dto';
+import { TestCaseFullDetailDto } from './dto/testcase-full-detail.dto';
 
 @ApiTags('testcases')
 @Controller('testcases')
@@ -78,6 +79,21 @@ export class TestCaseController {
   @ApiResponse({ status: 404, description: 'Test case not found' })
   async findOneWithReference(@Param('id') id: string) {
     return this.testCaseService.getWithReference(id);
+  }
+
+  @Get(':id/full')
+  @ApiOperation({ 
+    summary: 'Get a test case with complete reference and derived information',
+    description: 'Returns test case data along with all outgoing references and incoming references (derived test cases)'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Test case with complete reference information found', 
+    type: TestCaseFullDetailDto 
+  })
+  @ApiResponse({ status: 404, description: 'Test case not found' })
+  async findOneFullDetail(@Param('id') id: string) {
+    return this.testCaseService.getFullDetail(id);
   }
 
   @Get(':id/derived')

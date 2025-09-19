@@ -1,5 +1,27 @@
 # Changelog - Test Case Management with RAG
 
+## 🚀 Version 2.1.0 - Enhanced Reference Management (September 2025)
+
+### ✨ New Features
+
+#### 📊 Complete Reference & Derived Information
+- **NEW**: `/testcases/:id/full` endpoint untuk mendapatkan informasi lengkap
+- **NEW**: `TestCaseFullDetailDto` dengan struktur response yang komprehensif
+- **FEATURE**: Menyediakan outgoing references, incoming references (derived), dan summary counts
+- **USE CASE**: Perfect untuk UI detail view, dependency analysis, dan quality review
+
+#### 🔧 Enhanced Service Methods
+- **NEW**: `getFullDetail()` method di TestCaseService
+- **IMPROVED**: Optimized database queries untuk performance
+- **ENHANCED**: Bidirectional reference tracking untuk complete visibility
+
+### 📖 Documentation Updates
+- **UPDATED**: Tech.md dengan endpoint baru dan response structure
+- **UPDATED**: examples.md dengan curl examples untuk `/full`
+- **UPDATED**: frontend-guideline.txt dengan API integration examples
+
+---
+
 ## 🚀 Version 2.0.0 - RAG Implementation (September 2025)
 
 ### ✨ Major Features Added
