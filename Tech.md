@@ -106,6 +106,7 @@ model TestCase {
   expectedResult String            @db.Text // Expected result
   tags           Json              // Array of string tags
   embedding      String?           @db.Text // AI-generated embeddings (JSON array)
+  referenceId    String?           // ID test case yang dijadikan referensi
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   
@@ -131,6 +132,12 @@ interface TestStep {
   expectedResult: string; // Hasil yang diharapkan dari langkah ini
 }
 ```
+
+### **Test Case Reference Feature**:
+- **referenceId**: Menyimpan ID test case yang dijadikan referensi saat membuat test case baru
+- **Derivation Flow**: User bisa create test case baru berdasarkan test case existing
+- **Traceability**: Bisa track test case mana yang menjadi "parent" dan melihat derived test cases
+- **Frontend Integration**: Support untuk search → select → edit → save as new workflow
 
 ---
 
@@ -197,6 +204,12 @@ GET /testcases
 # Get Test Case by ID  
 GET /testcases/:id
 
+# Get Test Case with Reference Info
+GET /testcases/:id/with-reference
+
+# Get Derived Test Cases
+GET /testcases/:id/derived
+
 # Update Test Case
 PATCH /testcases/:id
 
@@ -205,6 +218,9 @@ DELETE /testcases/:id
 
 # Semantic Search
 GET /testcases/search?query=login&minSimilarity=0.7&limit=10
+
+# Create Test Case from Reference
+POST /testcases/derive/:referenceId
 ```
 
 ### AI Service Internal APIs
@@ -222,6 +238,228 @@ POST /search
   "min_similarity": 0.7,
   "limit": 10
 }
+```
+
+---
+
+## 📋 CURL Examples
+
+### 1. **Create Test Case**
+```bash
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Login Test - Valid User",
+    "description": "Test login functionality with valid user credentials",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Navigate to login page",
+        "expectedResult": "Login form is displayed"
+      },
+      {
+        "step": "Enter valid username and password",
+        "expectedResult": "Credentials are accepted"
+      },
+      {
+        "step": "Click login button",
+        "expectedResult": "User is redirected to dashboard"
+      }
+    ],
+    "expectedResult": "User successfully logs in and accesses dashboard",
+    "tags": ["login", "authentication", "positive"]
+  }'
+```
+
+### 2. **Get All Test Cases**
+```bash
+curl -X GET http://localhost:3000/testcases
+```
+
+### 3. **Get Test Case by ID**
+```bash
+curl -X GET http://localhost:3000/testcases/{test-case-id}
+```
+
+### 4. **Get Test Case with Reference Info**
+```bash
+curl -X GET http://localhost:3000/testcases/{test-case-id}/with-reference
+```
+
+### 5. **Search Test Cases (Semantic)**
+```bash
+curl -X GET "http://localhost:3000/testcases/search?query=login%20authentication&minSimilarity=0.7&limit=5"
+```
+
+### 6. **Create Test Case from Reference (Derive)**
+```bash
+curl -X POST http://localhost:3000/testcases/derive/{reference-test-case-id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Login Test - Invalid Password",
+    "description": "Test login functionality with invalid password",
+    "type": "negative",
+    "priority": "medium",
+    "steps": [
+      {
+        "step": "Navigate to login page",
+        "expectedResult": "Login form is displayed"
+      },
+      {
+        "step": "Enter valid username and invalid password",
+        "expectedResult": "Invalid credentials message appears"
+      },
+      {
+        "step": "Click login button",
+        "expectedResult": "Login is rejected"
+      }
+    ],
+    "expectedResult": "User receives error message and remains on login page",
+    "tags": ["login", "authentication", "negative", "invalid-password"]
+  }'
+```
+
+### 7. **Update Test Case**
+```bash
+curl -X PATCH http://localhost:3000/testcases/{test-case-id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Login Test - Valid User (Updated)",
+    "priority": "medium",
+    "tags": ["login", "authentication", "positive", "updated"]
+  }'
+```
+
+### 8. **Get Derived Test Cases**
+```bash
+curl -X GET http://localhost:3000/testcases/{reference-test-case-id}/derived
+```
+
+### 9. **Delete Test Case**
+```bash
+curl -X DELETE http://localhost:3000/testcases/{test-case-id}
+```
+
+### 10. **Complete Example Workflow**
+```bash
+# Step 1: Create original test case
+ORIGINAL_ID=$(curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "User Registration - Valid Data",
+    "description": "Test user registration with valid data",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Fill registration form with valid data",
+        "expectedResult": "Form accepts all inputs"
+      },
+      {
+        "step": "Submit form",
+        "expectedResult": "Registration successful"
+      }
+    ],
+    "expectedResult": "User account created successfully",
+    "tags": ["registration", "user", "positive"]
+  }' | jq -r '.id')
+
+echo "Original Test Case ID: $ORIGINAL_ID"
+
+# Step 2: Create derived test case (negative scenario)
+DERIVED_ID=$(curl -X POST http://localhost:3000/testcases/derive/$ORIGINAL_ID \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "User Registration - Invalid Email",
+    "description": "Test user registration with invalid email format",
+    "type": "negative",
+    "priority": "medium",
+    "expectedResult": "Registration fails with email validation error",
+    "tags": ["registration", "user", "negative", "email-validation"]
+  }' | jq -r '.id')
+
+echo "Derived Test Case ID: $DERIVED_ID"
+
+# Step 3: Get derived test case with reference info
+curl -X GET http://localhost:3000/testcases/$DERIVED_ID/with-reference | jq '.'
+
+# Step 4: Get all test cases derived from original
+curl -X GET http://localhost:3000/testcases/$ORIGINAL_ID/derived | jq '.'
+
+# Step 5: Search for registration related test cases
+curl -X GET "http://localhost:3000/testcases/search?query=registration%20user&minSimilarity=0.5&limit=10" | jq '.'
+```
+
+### 11. **Health Check & Documentation**
+```bash
+# Check if backend is running
+curl -X GET http://localhost:3000/testcases
+
+# Access Swagger Documentation
+open http://localhost:3000/api
+
+# Check AI service (if accessible)
+curl -X GET http://localhost:8000/health
+```
+
+### 12. **Response Examples**
+
+**Create Test Case Response:**
+```json
+{
+  "id": "cm1abc123def456ghi789",
+  "name": "Login Test - Valid User",
+  "description": "Test login functionality with valid user credentials",
+  "type": "positive",
+  "priority": "high",
+  "steps": [...],
+  "expectedResult": "User successfully logs in and accesses dashboard",
+  "tags": ["login", "authentication", "positive"],
+  "referenceId": null,
+  "createdAt": "2025-09-18T12:30:00.000Z",
+  "updatedAt": "2025-09-18T12:30:00.000Z"
+}
+```
+
+**Get with Reference Response:**
+```json
+{
+  "id": "cm1xyz789abc123def456",
+  "name": "Login Test - Invalid Password",
+  "description": "Test login functionality with invalid password",
+  "type": "negative",
+  "priority": "medium",
+  "referenceId": "cm1abc123def456ghi789",
+  "reference": {
+    "id": "cm1abc123def456ghi789",
+    "name": "Login Test - Valid User",
+    "createdAt": "2025-09-18T12:30:00.000Z"
+  },
+  "derivedCount": 0,
+  "createdAt": "2025-09-18T12:35:00.000Z",
+  "updatedAt": "2025-09-18T12:35:00.000Z"
+}
+```
+
+**Search Response:**
+```json
+[
+  {
+    "id": "cm1abc123def456ghi789",
+    "name": "Login Test - Valid User",
+    "description": "Test login functionality with valid user credentials",
+    "similarity": 0.89,
+    "created_at": "2025-09-18T12:30:00.000Z"
+  },
+  {
+    "id": "cm1xyz789abc123def456",
+    "name": "Login Test - Invalid Password", 
+    "description": "Test login functionality with invalid password",
+    "similarity": 0.75,
+    "created_at": "2025-09-18T12:35:00.000Z"
+  }
+]
 ```
 
 ---

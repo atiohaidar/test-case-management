@@ -16,6 +16,7 @@ import { CreateTestCaseDto } from './dto/create-testcase.dto';
 import { UpdateTestCaseDto } from './dto/update-testcase.dto';
 import { SearchTestCaseDto, SearchResultDto } from './dto/search-testcase.dto';
 import { TestCaseDto } from './entities/testcase.entity';
+import { TestCaseWithReferenceDto } from './dto/testcase-with-reference.dto';
 
 @ApiTags('testcases')
 @Controller('testcases')
@@ -41,6 +42,33 @@ export class TestCaseController {
   @ApiResponse({ status: 200, description: 'Search results with similarity scores', type: [SearchResultDto] })
   async search(@Query() searchDto: SearchTestCaseDto): Promise<SearchResultDto[]> {
     return this.testCaseService.search(searchDto);
+  }
+
+  @Get(':id/with-reference')
+  @ApiOperation({ summary: 'Get a test case with reference information' })
+  @ApiResponse({ status: 200, description: 'Test case with reference info found', type: TestCaseWithReferenceDto })
+  @ApiResponse({ status: 404, description: 'Test case not found' })
+  async findOneWithReference(@Param('id') id: string) {
+    return this.testCaseService.getWithReference(id);
+  }
+
+  @Get(':id/derived')
+  @ApiOperation({ summary: 'Get test cases derived from this test case' })
+  @ApiResponse({ status: 200, description: 'List of derived test cases', type: [TestCaseDto] })
+  @ApiResponse({ status: 404, description: 'Test case not found' })
+  async getDerived(@Param('id') id: string) {
+    return this.testCaseService.getDerivedTestCases(id);
+  }
+
+  @Post('derive/:referenceId')
+  @ApiOperation({ summary: 'Create a new test case based on an existing one' })
+  @ApiResponse({ status: 201, description: 'Test case derived successfully', type: TestCaseDto })
+  @ApiResponse({ status: 404, description: 'Reference test case not found' })
+  async deriveTestCase(
+    @Param('referenceId') referenceId: string,
+    @Body() createTestCaseDto: CreateTestCaseDto,
+  ) {
+    return this.testCaseService.deriveFromTestCase(referenceId, createTestCaseDto);
   }
 
   @Get(':id')

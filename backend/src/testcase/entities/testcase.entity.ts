@@ -42,6 +42,9 @@ export class TestCaseDto {
   @ApiProperty({ type: [String] })
   tags: string[];
 
+  @ApiProperty({ required: false })
+  referenceId?: string;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -60,6 +63,7 @@ export interface TestCase {
   expectedResult: string;
   tags: string[];
   embedding?: string;
+  referenceId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

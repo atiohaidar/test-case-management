@@ -1,6 +1,6 @@
-import { IsString, IsEnum, IsArray, IsNotEmpty, ValidateNested } from 'class-validator';
+import { IsString, IsEnum, IsArray, IsNotEmpty, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TestCaseType, TestCasePriority, TestStep } from '../entities/testcase.entity';
 
 class TestStepDto {
@@ -49,4 +49,9 @@ export class CreateTestCaseDto {
   @IsArray()
   @IsString({ each: true })
   tags: string[];
+
+  @ApiPropertyOptional({ description: 'ID of test case used as reference for creating this test case' })
+  @IsString()
+  @IsOptional()
+  referenceId?: string;
 }

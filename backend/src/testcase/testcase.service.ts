@@ -15,6 +15,16 @@ export class TestCaseService {
 
   async create(createTestCaseDto: CreateTestCaseDto) {
     try {
+      // Validate reference test case exists if referenceId provided
+      if (createTestCaseDto.referenceId) {
+        const referenceExists = await this.prisma.testCase.findUnique({
+          where: { id: createTestCaseDto.referenceId },
+        });
+        if (!referenceExists) {
+          throw new HttpException('Reference test case not found', HttpStatus.NOT_FOUND);
+        }
+      }
+
       // Generate embedding for the test case
       const embedding = await this.generateEmbedding(createTestCaseDto);
 
@@ -28,7 +38,8 @@ export class TestCaseService {
           expectedResult: createTestCaseDto.expectedResult,
           tags: createTestCaseDto.tags as any,
           embedding: JSON.stringify(embedding),
-        },
+          referenceId: createTestCaseDto.referenceId,
+        } as any,
       });
 
       // Remove embedding from returned test case
@@ -82,7 +93,7 @@ export class TestCaseService {
           ...(updateTestCaseDto.expectedResult && { expectedResult: updateTestCaseDto.expectedResult }),
           ...(updateTestCaseDto.tags && { tags: updateTestCaseDto.tags as any }),
           embedding: JSON.stringify(embedding),
-        },
+        } as any,
       });
 
       // Remove embedding from returned test case
@@ -104,6 +115,83 @@ export class TestCaseService {
     }
 
     await this.prisma.testCase.delete({ where: { id } });
+  }
+
+  async getWithReference(id: string) {
+    const testCase = await this.prisma.testCase.findUnique({ where: { id } });
+    if (!testCase) {
+      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Get reference test case if exists
+    let reference = null;
+    if ((testCase as any).referenceId) {
+      reference = await this.prisma.testCase.findUnique({
+        where: { id: (testCase as any).referenceId },
+        select: { id: true, name: true, createdAt: true }
+      });
+    }
+
+    // Get count of derived test cases
+    const derivedCount = await this.prisma.testCase.count({
+      where: { referenceId: id } as any
+    });
+
+    // Remove embedding from returned test case
+    const { embedding: _, ...rest } = testCase;
+
+    return {
+      ...rest,
+      reference,
+      derivedCount
+    };
+  }
+
+  async getDerivedTestCases(id: string) {
+    // Check if test case exists
+    const existingTestCase = await this.prisma.testCase.findUnique({ where: { id } });
+    if (!existingTestCase) {
+      throw new HttpException('Test case not found', HttpStatus.NOT_FOUND);
+    }
+
+    const derivedTestCases = await this.prisma.testCase.findMany({
+      where: { referenceId: id } as any,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Remove embeddings from returned test cases
+    return derivedTestCases.map(({ embedding, ...rest }) => rest);
+  }
+
+  async deriveFromTestCase(referenceId: string, createTestCaseDto: CreateTestCaseDto) {
+    // Get reference test case
+    const referenceTestCase = await this.prisma.testCase.findUnique({
+      where: { id: referenceId }
+    });
+
+    if (!referenceTestCase) {
+      throw new HttpException('Reference test case not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Merge reference data with new data (new data takes priority)
+    const mergedData: CreateTestCaseDto = {
+      name: createTestCaseDto.name || referenceTestCase.name,
+      description: createTestCaseDto.description || referenceTestCase.description,
+      type: createTestCaseDto.type || (referenceTestCase.type as any),
+      priority: createTestCaseDto.priority || (referenceTestCase.priority as any),
+      steps: createTestCaseDto.steps || (referenceTestCase.steps as any),
+      expectedResult: createTestCaseDto.expectedResult || referenceTestCase.expectedResult,
+      tags: createTestCaseDto.tags || (referenceTestCase.tags as any),
+      referenceId: referenceId
+    };
+    // add generate embedding and create new test case
+    const embedding = await this.generateEmbedding(mergedData);
+    (mergedData as any).embedding = JSON.stringify(embedding);
+
+
+
+
+    return this.create(mergedData);
   }
 
   async search(searchDto: SearchTestCaseDto): Promise<SearchResultDto[]> {
