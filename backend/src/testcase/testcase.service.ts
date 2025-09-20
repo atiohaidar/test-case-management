@@ -15,7 +15,7 @@ export class TestCaseService {
     private referenceService: TestCaseReferenceService,
     private aiService: TestCaseAIService,
     private embeddingService: TestCaseEmbeddingService,
-  ) {}
+  ) { }
 
   // CRUD Operations
   async create(createTestCaseDto: CreateTestCaseDto) {

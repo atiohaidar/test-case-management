@@ -29,7 +29,7 @@ Berdasarkan analisis mendalam terhadap codebase, berikut adalah temuan dan rekom
 //   └── testcase-embedding.service.ts  // Embedding operations
 ```
 
-#### 2. **Error Handling Standardization**
+#### 2. **Error Handling Standardization** ✅ **COMPLETED**
 ```typescript
 // MASALAH: Inconsistent error handling pattern
 // SEKARANG: throw new HttpException('...', HttpStatus.XXX)
@@ -45,6 +45,13 @@ Berdasarkan analisis mendalam terhadap codebase, berikut adalah temuan dan rekom
 //   └── responses/
 //       └── api-response.dto.ts
 ```
+
+**✅ Implementation Details:**
+- **BusinessException**: For business logic errors (404, 409, etc.)
+- **ValidationException**: For input validation errors (400)
+- **ExternalServiceException**: For AI service communication errors (503)
+- **AllExceptionsFilter**: Global exception handler with environment-aware responses
+- **ApiResponseDto**: Standardized response format for all endpoints
 
 #### 3. **Database Connection & Transaction Management**
 ```python

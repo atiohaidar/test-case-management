@@ -10,6 +10,8 @@
 - **Swagger** - API documentation dan testing interface
 - **Class Validator** - Input validation dan transformation
 - **Axios** - HTTP client untuk komunikasi dengan AI service
+- **Custom Exception Filters** - Standardized error handling
+- **Global Validation Pipes** - Input validation dengan custom error responses
 
 ### AI/ML Stack
 - **FastAPI** (v0.115.0) - Python web framework untuk AI service
@@ -145,6 +147,97 @@ TestCaseModule
 - **Easier Tracing**: Clear call paths between services
 - **Isolated Testing**: Unit tests can focus on specific functionality
 - **Better Monitoring**: Service-specific metrics and health checks
+
+---
+
+## 🚨 Error Handling System
+
+### **Custom Exception Classes**
+
+#### **BusinessException**
+```typescript
+// Usage: Business logic errors (not found, validation, conflicts)
+throw new BusinessException(
+  'Test case not found',
+  HttpStatus.NOT_FOUND,
+  'TESTCASE_NOT_FOUND'
+);
+```
+
+#### **ValidationException**
+```typescript
+// Usage: DTO validation errors (automatically handled by ValidationPipe)
+// Automatically converted from class-validator errors
+```
+
+#### **ExternalServiceException**
+```typescript
+// Usage: External service failures (AI service, database, etc.)
+throw new ExternalServiceException(
+  'AI Service',
+  originalError,
+  HttpStatus.SERVICE_UNAVAILABLE
+);
+```
+
+### **Global Exception Filter**
+
+#### **AllExceptionsFilter**
+- **Global Error Handler**: Catches all unhandled exceptions
+- **Standardized Response**: Consistent error format across all endpoints
+- **Environment-Aware**: Different responses for development vs production
+- **Comprehensive Logging**: Structured logging with correlation IDs
+
+#### **Error Response Format**
+```typescript
+// Production Response
+{
+  "success": false,
+  "message": "Test case not found",
+  "errorCode": "TESTCASE_NOT_FOUND",
+  "timestamp": "2025-09-20T10:30:00.000Z",
+  "path": "/api/testcases/invalid-id"
+}
+
+// Development Response (includes debugging info)
+{
+  "success": false,
+  "message": "Test case not found",
+  "errorCode": "TESTCASE_NOT_FOUND",
+  "timestamp": "2025-09-20T10:30:00.000Z",
+  "path": "/api/testcases/invalid-id",
+  "details": "Additional context if available",
+  "stack": "Error stack trace for debugging"
+}
+```
+
+### **Error Code Reference**
+
+| Error Code | HTTP Status | Description |
+|------------|-------------|-------------|
+| `TESTCASE_NOT_FOUND` | 404 | Test case tidak ditemukan |
+| `TESTCASE_CREATE_FAILED` | 500 | Gagal membuat test case |
+| `TESTCASE_UPDATE_FAILED` | 500 | Gagal update test case |
+| `SOURCE_TESTCASE_NOT_FOUND` | 404 | Source test case untuk reference tidak ditemukan |
+| `TARGET_TESTCASE_NOT_FOUND` | 404 | Target test case untuk reference tidak ditemukan |
+| `REFERENCE_ALREADY_EXISTS` | 409 | Reference sudah ada |
+| `REFERENCE_NOT_FOUND` | 404 | Reference tidak ditemukan |
+| `VALIDATION_ERROR` | 400 | Validation error dari DTO |
+| `EXTERNAL_SERVICE_ERROR` | 503 | External service (AI, database) error |
+| `INTERNAL_ERROR` | 500 | Internal server error |
+
+### **Security Features**
+
+#### **Production Environment**
+- ✅ **No Stack Traces**: Sensitive information tidak pernah bocor
+- ✅ **Minimal Details**: Hanya informasi yang diperlukan untuk client
+- ✅ **Structured Logging**: Error tetap dicatat untuk internal debugging
+- ✅ **Rate Limiting Ready**: Framework siap untuk rate limiting
+
+#### **Development Environment**
+- ✅ **Full Debugging Info**: Stack traces dan details untuk development
+- ✅ **Error Context**: Additional information untuk troubleshooting
+- ✅ **Development Tools**: Tools untuk debugging dan testing
 
 ### 3. **AI Service Layer (Python/FastAPI)**
 **Port**: 8000
