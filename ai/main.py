@@ -21,8 +21,9 @@ from models import (
 )
 from services import ai_service, gemini_service, db
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
+# Setup logging with environment variable
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+logging.basicConfig(level=getattr(logging, log_level))
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -77,4 +78,6 @@ async def get_token_info():
 # Main execution
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', '8000'))
+    uvicorn.run(app, host=host, port=port)

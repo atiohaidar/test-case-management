@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 import logging
+import os
 from typing import List, Dict, Any
 from fastapi import HTTPException
 
@@ -22,9 +23,14 @@ class AIService:
     """Handles AI/ML operations for embeddings and semantic search"""
 
     def __init__(self):
-        # Initialize the sentence transformer model
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        logger.info("Sentence transformer model initialized")
+        # Initialize the sentence transformer model using environment variable
+        model_name = os.getenv('MODEL_NAME', 'all-MiniLM-L6-v2')
+        self.model = SentenceTransformer(model_name)
+        logger.info(f"Sentence transformer model initialized: {model_name}")
+
+        # Store model configuration
+        self.model_name = model_name
+        self.embedding_dimension = int(os.getenv('EMBEDDING_DIMENSION', '384'))
 
     def generate_embedding(self, request: EmbeddingRequest) -> EmbeddingResponse:
         """Generate embedding for given text"""
@@ -119,8 +125,8 @@ class AIService:
                 "total_test_cases": total_count,
                 "embedded_test_cases": embedded_count,
                 "embedding_coverage": (embedded_count / total_count * 100) if total_count > 0 else 0,
-                "model_name": "all-MiniLM-L6-v2",
-                "embedding_dimension": 384
+                "model_name": self.model_name,
+                "embedding_dimension": self.embedding_dimension
             }
 
         except Exception as e:

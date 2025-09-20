@@ -9,23 +9,23 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Global()
 @Module({
-  controllers: [MonitoringController],
-  providers: [
-    WinstonLoggerService,
-    PrometheusService,
-    HealthCheckService,
-    JaegerTracingService,
-    PrismaService, // Add PrismaService as a provider
-  ],
-  exports: [
-    WinstonLoggerService,
-    PrometheusService,
-    HealthCheckService,
-    JaegerTracingService,
-  ],
+    controllers: [MonitoringController],
+    providers: [
+        WinstonLoggerService,
+        PrometheusService,
+        HealthCheckService,
+        JaegerTracingService,
+        PrismaService, // Add PrismaService as a provider
+    ],
+    exports: [
+        WinstonLoggerService,
+        PrometheusService,
+        HealthCheckService,
+        JaegerTracingService,
+    ],
 })
 export class MonitoringModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
-  }
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+    }
 }
