@@ -79,16 +79,72 @@
 - Integration dengan AI service untuk embedding generation
 - API documentation dengan Swagger
 
-**Core Modules**:
+**Refactored Service Architecture**:
 ```typescript
-AppModule
-├── ConfigModule (Global configuration)
-├── PrismaService (Database connection)
-└── TestCaseModule
-    ├── TestCaseController (HTTP endpoints)
-    ├── TestCaseService (Business logic)
-    └── DTOs (Data validation)
+TestCaseModule
+├── TestCaseController (HTTP endpoints)
+├── TestCaseService (Main service - orchestrates all operations)
+├── services/
+│   ├── TestCaseCrudService (Basic CRUD operations)
+│   ├── TestCaseReferenceService (Reference management)
+│   ├── TestCaseAIService (AI integration & generation)
+│   └── TestCaseEmbeddingService (Embedding generation)
+└── DTOs (Data validation)
 ```
+
+**Service Responsibilities**:
+
+#### **TestCaseCrudService**
+- `create()` - Create new test cases with embedding generation
+- `findAll()` - Retrieve all test cases (without embeddings)
+- `findOne()` - Retrieve single test case by ID
+- `update()` - Update test case with embedding regeneration
+- `remove()` - Delete test case
+- `exists()` - Check if test case exists
+
+#### **TestCaseReferenceService**
+- `getWithReference()` - Get test case with its outgoing references
+- `getDerivedTestCases()` - Get test cases that reference this one
+- `getFullDetail()` - Get complete test case with all references
+- `deriveFromTestCase()` - Create new test case based on existing one
+- `addManualReference()` - Add manual reference between test cases
+- `removeReference()` - Remove reference relationship
+- `createRAGReferences()` - Create RAG-based references
+- `getReferencesForTestCase()` - Get all references for a test case
+
+#### **TestCaseAIService**
+- `generateTestCaseWithAI()` - Generate test case using AI service
+- `generateAndSaveTestCaseWithAI()` - Generate and save test case with AI
+- `search()` - Perform semantic search using AI service
+
+#### **TestCaseEmbeddingService**
+- `generateEmbedding()` - Generate text embeddings for test cases
+
+### **Benefits of Service Separation**
+
+#### **🔧 Improved Maintainability**
+- **Single Responsibility**: Each service handles one specific domain
+- **Easier Testing**: Services can be tested in isolation
+- **Clear Dependencies**: Well-defined interfaces between services
+- **Reduced Complexity**: Smaller, focused code files
+
+#### **📈 Enhanced Scalability**
+- **Modular Architecture**: Easy to add new features without affecting existing code
+- **Independent Deployment**: Services can be updated independently
+- **Resource Optimization**: Better memory usage and performance
+- **Team Collaboration**: Multiple developers can work on different services simultaneously
+
+#### **🛡️ Better Error Handling**
+- **Isolated Failures**: Issues in one service don't affect others
+- **Granular Logging**: Specific error tracking per service
+- **Fallback Mechanisms**: AI service failures don't break CRUD operations
+- **Graceful Degradation**: System continues to function with partial service failures
+
+#### **🔍 Improved Debugging**
+- **Focused Logs**: Each service has its own logging context
+- **Easier Tracing**: Clear call paths between services
+- **Isolated Testing**: Unit tests can focus on specific functionality
+- **Better Monitoring**: Service-specific metrics and health checks
 
 ### 3. **AI Service Layer (Python/FastAPI)**
 **Port**: 8000
@@ -207,49 +263,97 @@ interface AIGenerationMetadata {
 
 ## 🔄 Flow Sistem Secara Teknis
 
-### 1. **Create Test Case Flow**
+### 1. **Create Test Case Flow (Refactored)**
 ```mermaid
 sequenceDiagram
-    Client->>+NestJS: POST /testcases
-    NestJS->>+NestJS: Validate DTO
-    NestJS->>+AI Service: POST /generate-embedding
-    AI Service->>+AI Service: Generate text embedding
-    AI Service-->>-NestJS: Return embedding array
-    NestJS->>+Prisma: Create record with embedding
+    Client->>+TestCaseController: POST /testcases
+    TestCaseController->>+TestCaseService: create(dto)
+    TestCaseService->>+TestCaseEmbeddingService: generateEmbedding(dto)
+    TestCaseEmbeddingService->>+AI Service: POST /generate-embedding
+    AI Service-->>-TestCaseEmbeddingService: Return embedding array
+    TestCaseEmbeddingService-->>-TestCaseService: Return embedding
+    TestCaseService->>+TestCaseCrudService: create(dto, embedding)
+    TestCaseCrudService->>+Prisma: Create record with embedding
     Prisma->>+MySQL: INSERT INTO testcases
     MySQL-->>-Prisma: Success
-    Prisma-->>-NestJS: Return created record
-    NestJS-->>-Client: HTTP 201 + TestCase data (without embedding)
+    Prisma-->>-TestCaseCrudService: Return created record
+    TestCaseCrudService-->>-TestCaseService: Return test case (no embedding)
+    TestCaseService-->>-TestCaseController: Return test case
+    TestCaseController-->>-Client: HTTP 201 + TestCase data
 ```
 
-### 2. **Semantic Search Flow**
+### 2. **Semantic Search Flow (Refactored)**
 ```mermaid
 sequenceDiagram
-    Client->>+NestJS: GET /testcases/search?query=...
-    NestJS->>+AI Service: POST /search
+    Client->>+TestCaseController: GET /testcases/search?query=...
+    TestCaseController->>+TestCaseService: search(searchDto)
+    TestCaseService->>+TestCaseAIService: search(searchDto)
+    TestCaseAIService->>+AI Service: POST /search
     AI Service->>+AI Service: Generate query embedding
     AI Service->>+MySQL: SELECT embeddings from testcases
     MySQL-->>-AI Service: Return all embeddings
     AI Service->>+AI Service: Calculate cosine similarity
     AI Service->>+AI Service: Filter by min_similarity & limit
-    AI Service-->>-NestJS: Return search results with scores
-    NestJS-->>-Client: HTTP 200 + SearchResult[]
+    AI Service-->>-TestCaseAIService: Return search results with scores
+    TestCaseAIService-->>-TestCaseService: Return results
+    TestCaseService-->>-TestCaseController: Return results
+    TestCaseController-->>-Client: HTTP 200 + SearchResult[]
 ```
 
-### 3. **CRUD Operations Flow**
+### 3. **CRUD Operations Flow (Refactored)**
 ```mermaid
 sequenceDiagram
-    Client->>+NestJS: GET/PUT/DELETE /testcases/:id
-    NestJS->>+Prisma: findUnique/update/delete
+    Client->>+TestCaseController: GET/PUT/DELETE /testcases/:id
+    TestCaseController->>+TestCaseService: findOne/update/remove
+    TestCaseService->>+TestCaseCrudService: findOne/update/remove
+    TestCaseCrudService->>+Prisma: findUnique/update/delete
     Prisma->>+MySQL: SELECT/UPDATE/DELETE
     MySQL-->>-Prisma: Result
-    Note over NestJS: For UPDATE: regenerate embedding
+    Note over TestCaseService: For UPDATE: regenerate embedding
     alt Update Operation
-        NestJS->>+AI Service: POST /generate-embedding
-        AI Service-->>-NestJS: New embedding
+        TestCaseService->>+TestCaseEmbeddingService: generateEmbedding(dto)
+        TestCaseEmbeddingService->>+AI Service: POST /generate-embedding
+        AI Service-->>-TestCaseEmbeddingService: New embedding
+        TestCaseEmbeddingService-->>-TestCaseService: New embedding
+        TestCaseService->>+TestCaseCrudService: update(id, dto, embedding)
     end
-    Prisma-->>-NestJS: Final result
-    NestJS-->>-Client: HTTP response (embedding filtered out)
+    TestCaseCrudService-->>-TestCaseService: Final result (embedding filtered)
+    TestCaseService-->>-TestCaseController: Final result
+    TestCaseController-->>-Client: HTTP response
+```
+
+### 4. **AI Generation Flow (Refactored)**
+```mermaid
+sequenceDiagram
+    Client->>+TestCaseController: POST /testcases/generate-ai
+    TestCaseController->>+TestCaseService: generateAndSaveTestCaseWithAI(dto)
+    TestCaseService->>+TestCaseAIService: generateAndSaveTestCaseWithAI(dto)
+    TestCaseAIService->>+AI Service: POST /generate-test-case
+    AI Service->>+AI Service: Process prompt with RAG
+    AI Service->>+MySQL: Query similar test cases
+    MySQL-->>-AI Service: Return similar test cases
+    AI Service->>+Gemini AI: Generate test case with context
+    Gemini AI-->>-AI Service: Return generated test case
+    AI Service-->>-TestCaseAIService: Return AI response + RAG references
+    TestCaseAIService->>+TestCaseEmbeddingService: generateEmbedding(aiResponse)
+    TestCaseEmbeddingService->>+AI Service: POST /generate-embedding
+    AI Service-->>-TestCaseEmbeddingService: Return embedding
+    TestCaseEmbeddingService-->>-TestCaseAIService: Return embedding
+    TestCaseAIService->>+TestCaseCrudService: create(aiResponse, embedding)
+    TestCaseCrudService->>+Prisma: Create test case record
+    Prisma->>+MySQL: INSERT INTO testcases
+    MySQL-->>-Prisma: Success
+    Prisma-->>-TestCaseCrudService: Return created test case
+    TestCaseCrudService-->>-TestCaseAIService: Return test case
+    TestCaseAIService->>+TestCaseReferenceService: createRAGReferences(testCaseId, ragRefs)
+    TestCaseReferenceService->>+Prisma: Create reference records
+    Prisma->>+MySQL: INSERT INTO testcase_references
+    MySQL-->>-Prisma: Success
+    Prisma-->>-TestCaseReferenceService: Success
+    TestCaseReferenceService-->>-TestCaseAIService: References created
+    TestCaseAIService-->>-TestCaseService: Return complete result
+    TestCaseService-->>-TestCaseController: Return result
+    TestCaseController-->>-Client: HTTP 201 + Generated test case
 ```
 
 ---
