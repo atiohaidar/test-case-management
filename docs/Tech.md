@@ -27,6 +27,13 @@
 - **Node.js** (runtime untuk NestJS)
 - **Python** (runtime untuk AI service)
 
+### Monitoring & Observability
+- **Winston** - Structured logging dengan file rotation
+- **Prometheus** - Metrics collection dan monitoring
+- **Jaeger** - Distributed tracing dengan OpenTelemetry
+- **Health Checks** - Application dan dependency health monitoring
+- **Correlation ID** - Request tracing across services
+
 ### Development Tools
 - **Jest** - Testing framework
 - **ESLint** & **Prettier** - Code linting dan formatting
@@ -238,6 +245,149 @@ throw new ExternalServiceException(
 - ✅ **Full Debugging Info**: Stack traces dan details untuk development
 - ✅ **Error Context**: Additional information untuk troubleshooting
 - ✅ **Development Tools**: Tools untuk debugging dan testing
+
+---
+
+## 📊 Monitoring & Observability System
+
+### **Winston Structured Logging**
+
+#### **Logger Configuration**
+```typescript
+// Features:
+- Multiple log levels (error, warn, info, debug, verbose)
+- File rotation (daily files, size limits)
+- Separate error logs
+- JSON structured format
+- Correlation ID tracking
+```
+
+#### **Log Files Structure**
+```
+logs/
+├── application-2025-09-20.log    # All logs
+├── error-2025-09-20.log          # Error only
+└── application-2025-09-19.log    # Previous day
+```
+
+#### **Log Format**
+```json
+{
+  "timestamp": "2025-09-20T10:30:00.000Z",
+  "level": "info",
+  "message": "Test case created successfully",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "context": "TestCaseController",
+  "service": "test-case-management"
+}
+```
+
+### **Prometheus Metrics**
+
+#### **Available Metrics**
+```typescript
+// HTTP Request Metrics
+- testcase_http_requests_total{method, route, status_code}
+- testcase_http_request_duration_seconds{method, route}
+
+// Connection Metrics
+- testcase_active_connections
+- testcase_database_connections_active
+
+// AI Service Metrics
+- testcase_ai_service_requests_total{operation, status}
+- testcase_ai_service_errors_total{operation, error_type}
+
+// System Metrics (auto-collected)
+- testcase_process_cpu_user_seconds_total
+- testcase_process_cpu_system_seconds_total
+- testcase_nodejs_heap_size_used_bytes
+- testcase_nodejs_heap_size_total_bytes
+```
+
+#### **Metrics Endpoints**
+- **Health Check**: `GET /monitoring/health`
+- **Detailed Health**: `GET /monitoring/health/detailed`
+- **Prometheus Metrics**: `GET /monitoring/metrics`
+- **Ping**: `GET /monitoring/ping`
+
+### **Jaeger Distributed Tracing**
+
+#### **Auto-Instrumentation**
+```typescript
+// Automatically traces:
+- HTTP requests (incoming/outgoing)
+- Database queries (when available)
+- External service calls
+- Custom spans for business logic
+```
+
+#### **Custom Tracing**
+```typescript
+// Manual span creation
+const span = this.jaegerService.createSpan('ai-generation', {
+  'ai.operation': 'generate-testcase',
+  'ai.model': 'gemini-pro'
+});
+
+// Add custom attributes
+span.setAttribute('testcase.id', testcaseId);
+span.setAttribute('user.id', userId);
+```
+
+### **Correlation ID Middleware**
+
+#### **Request Tracing**
+```typescript
+// Every request gets a correlation ID
+// - Auto-generated if not provided in headers
+// - Added to response headers
+// - Included in all log entries
+// - Traced across service calls
+```
+
+#### **Usage Example**
+```bash
+# Request with correlation ID
+curl -H "x-correlation-id: 550e8400-e29b-41d4-a716-446655440000" \
+     http://localhost:3000/api/testcases
+
+# Response includes the same correlation ID
+# All logs for this request will include the correlation ID
+```
+
+### **Health Check System**
+
+#### **Health Checks Performed**
+- **Database Connection**: MySQL connectivity test
+- **AI Service**: Health check to Python service
+- **Memory Usage**: Heap usage monitoring
+- **Disk Space**: Available storage monitoring
+- **System Load**: CPU and memory metrics
+
+#### **Health Response Format**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-09-20T10:30:00.000Z",
+  "uptime": 3600,
+  "version": "1.0.0",
+  "checks": [
+    {
+      "name": "database",
+      "status": "healthy",
+      "details": "Database connection successful",
+      "timestamp": "2025-09-20T10:30:00.000Z"
+    },
+    {
+      "name": "ai_service",
+      "status": "healthy",
+      "details": "AI service is healthy",
+      "timestamp": "2025-09-20T10:30:00.000Z"
+    }
+  ]
+}
+```
 
 ### 3. **AI Service Layer (Python/FastAPI)**
 **Port**: 8000
