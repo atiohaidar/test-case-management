@@ -1,0 +1,5 @@
+{
+  "name": "AI Test Case Manager",
+  "description": "A modern test case management application with AI-powered generation and Retrieval-Augmented Generation (RAG) capabilities for enhanced context and accuracy.",
+  "requestFramePermissions": []
+}
