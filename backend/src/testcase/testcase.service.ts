@@ -21,7 +21,26 @@ export class TestCaseService {
   async create(createTestCaseDto: CreateTestCaseDto) {
     // Generate embedding for the test case
     const embedding = await this.embeddingService.generateEmbedding(createTestCaseDto);
-    return this.crudService.create(createTestCaseDto, JSON.stringify(embedding));
+
+    // Create the test case
+    const testCase = await this.crudService.create(createTestCaseDto, JSON.stringify(embedding));
+
+    // Handle reference creation if specified (for semantic search)
+    if (createTestCaseDto.referenceTo && createTestCaseDto.referenceType) {
+      await this.referenceService.createReference(
+        testCase.id,
+        createTestCaseDto.referenceTo,
+        createTestCaseDto.referenceType,
+        createTestCaseDto.ragReferences
+      );
+    }
+
+    // Handle RAG references if provided (for AI-generated test cases with RAG)
+    if (createTestCaseDto.ragReferences && createTestCaseDto.ragReferences.length > 0) {
+      await this.referenceService.createRAGReferences(testCase.id, createTestCaseDto.ragReferences);
+    }
+
+    return testCase;
   }
 
   async findAll() {

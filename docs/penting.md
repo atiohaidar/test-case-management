@@ -3,4 +3,4 @@ derived itu kalau konsep nya make semantic search, jjadi dari semantic search, t
 
 kalau manual references seharuna ini jarang dipake,  kaerena ini maksa nambahinnya
 
-kalau yang rag itu berarti ngambil nya dari RAG itu sendiri
+kalau yang semantic_search itu berarti ngambil nya dari semantic search itu sendiri

@@ -15,12 +15,12 @@ interface TestCaseDetailProps {
 const ReferenceItem: React.FC<{ reference: TestCaseReference | TestCaseReferencedBy }> = ({ reference }) => {
   const isOutgoing = 'target' in reference;
   const item = isOutgoing ? reference.target : reference.source;
-  
+
   const getIcon = () => {
-    switch(reference.referenceType) {
+    switch (reference.referenceType) {
       case 'manual': return <div title="Manual Reference" className="flex items-center gap-1 text-xs bg-gray-600 text-gray-200 px-2 py-0.5 rounded-full"><ManualIcon className="w-3 h-3" /> Manual</div>;
       case 'rag_retrieval': return <div title="RAG Reference" className="flex items-center gap-1 text-xs bg-green-800 text-green-200 px-2 py-0.5 rounded-full"><RagIcon className="w-3 h-3" /> RAG</div>;
-      case 'derived': return <div title="Derived" className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full"><DerivedIcon className="w-3 h-3" /> Derived</div>;
+      case 'semantic_search': return <div title="Semantic Search" className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full"><DerivedIcon className="w-3 h-3" /> Semantic Search</div>;
     }
   };
 
@@ -69,7 +69,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
   if (loading) return <div className="text-center p-10">Loading details...</div>;
   if (error) return <div className="text-center p-10 text-red-400">{error}</div>;
   if (!testCase) return null;
-  
+
   const confidenceColor = testCase.aiConfidence && testCase.aiConfidence > 0.8 ? 'text-green-400' : testCase.aiConfidence && testCase.aiConfidence > 0.6 ? 'text-yellow-400' : 'text-orange-400';
 
 
@@ -81,14 +81,14 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
           Back to List
         </button>
         <div className="flex items-center gap-2">
-            <button onClick={() => onEdit(testCase)} className="flex items-center gap-2 bg-ui-element hover:bg-opacity-80 text-body-text font-semibold py-2 px-4 rounded-lg transition">
-                <EditIcon className="w-4 h-4" />
-                Edit
-            </button>
-            <button onClick={() => onDelete(testCase.id)} className="flex items-center gap-2 bg-red-800/80 hover:bg-red-800 text-red-200 font-semibold py-2 px-4 rounded-lg transition">
-                <TrashIcon className="w-4 h-4" />
-                Delete
-            </button>
+          <button onClick={() => onEdit(testCase)} className="flex items-center gap-2 bg-ui-element hover:bg-opacity-80 text-body-text font-semibold py-2 px-4 rounded-lg transition">
+            <EditIcon className="w-4 h-4" />
+            Edit
+          </button>
+          <button onClick={() => onDelete(testCase.id)} className="flex items-center gap-2 bg-red-800/80 hover:bg-red-800 text-red-200 font-semibold py-2 px-4 rounded-lg transition">
+            <TrashIcon className="w-4 h-4" />
+            Delete
+          </button>
         </div>
       </div>
 
@@ -100,27 +100,27 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
           <PriorityBadge priority={testCase.priority} large />
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
-            {testCase.tags.map((tag) => <Badge key={tag} text={tag} />)}
+          {testCase.tags.map((tag) => <Badge key={tag} text={tag} />)}
         </div>
       </div>
-      
+
       <p className="text-body-text">{testCase.description}</p>
-      
+
       {/* AI Metadata */}
       {testCase.aiGenerated && (
         <div className="bg-ui-element/50 border border-accent-border rounded-lg p-4 space-y-3">
           <h2 className="text-lg font-heading text-white flex items-center gap-2">
-            <AiIcon className="w-5 h-5 text-accent"/> AI Generation Details
+            <AiIcon className="w-5 h-5 text-accent" /> AI Generation Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gray-300">Method:</span>
               <span className={testCase.aiGenerationMethod === 'rag' ? 'text-green-400' : 'text-blue-400'}>{testCase.aiGenerationMethod?.replace('_', ' ')}</span>
             </div>
-             {testCase.aiConfidence && (
+            {testCase.aiConfidence && (
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-300">Confidence:</span>
-                <span className={`flex items-center gap-1 ${confidenceColor}`}><ConfidenceIcon className="w-4 h-4" /> { (testCase.aiConfidence * 100).toFixed(0) }%</span>
+                <span className={`flex items-center gap-1 ${confidenceColor}`}><ConfidenceIcon className="w-4 h-4" /> {(testCase.aiConfidence * 100).toFixed(0)}%</span>
               </div>
             )}
           </div>

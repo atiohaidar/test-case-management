@@ -1,7 +1,7 @@
 
 export type TestCaseType = 'positive' | 'negative';
 export type Priority = 'high' | 'medium' | 'low';
-export type ReferenceType = 'manual' | 'rag_retrieval' | 'derived';
+export type ReferenceType = 'manual' | 'rag_retrieval' | 'semantic_search';
 export type AIGenerationMethod = 'pure_ai' | 'rag';
 
 export interface TestStep {
@@ -41,16 +41,16 @@ export interface TestCaseReference {
 }
 
 export interface TestCaseReferencedBy {
+  id: string;
+  sourceId: string;
+  similarityScore?: number;
+  referenceType: ReferenceType;
+  source: {
     id: string;
-    sourceId: string;
-    similarityScore?: number;
-    referenceType: ReferenceType;
-    source: {
-      id: string;
-      name: string;
-      type: TestCaseType;
-      priority: Priority;
-    };
+    name: string;
+    type: TestCaseType;
+    priority: Priority;
+  };
 }
 
 
@@ -97,23 +97,36 @@ export interface RAGReference {
 }
 
 export interface AIGeneratedTestCaseResponse extends Omit<TestCaseDetail, 'id' | 'createdAt' | 'updatedAt' | 'references' | 'referencedBy'> {
-    confidence?: number;
-    ragReferences: RAGReference[];
+  confidence?: number;
+  ragReferences: RAGReference[];
 }
 
 export interface CreateTestCaseDto {
-    name: string;
-    description: string;
-    type: TestCaseType;
-    priority: Priority;
-    steps: TestStep[];
-    expectedResult: string;
-    tags: string[];
+  name: string;
+  description: string;
+  type: TestCaseType;
+  priority: Priority;
+  steps: TestStep[];
+  expectedResult: string;
+  tags: string[];
+
+  // AI Generation Metadata (Optional)
+  aiGenerated?: boolean;
+  originalPrompt?: string;
+  aiConfidence?: number;
+  aiSuggestions?: string;
+  tokenUsage?: any;
+
+  // Reference Management (for semantic search -> edit -> save flow)
+  referenceTo?: string;
+  referenceType?: ReferenceType;
+  aiGenerationMethod?: AIGenerationMethod;
+  ragReferences?: RAGReference[];
 }
 
 export type UpdateTestCaseDto = Partial<CreateTestCaseDto>;
 
 export interface SearchResult {
-    testCase: TestCaseListItem;
-    similarity: number;
+  testCase: TestCaseListItem;
+  similarity: number;
 }

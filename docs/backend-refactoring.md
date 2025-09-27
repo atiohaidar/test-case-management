@@ -71,9 +71,9 @@ backend/src/testcase/
 - **Role**: Manage all reference-related operations
 - **Methods**:
   - `getWithReference()` - Get test case with outgoing references
-  - `getDerivedTestCases()` - Get incoming references
+  - `getSemanticSearchTestCases()` - Get incoming references
   - `getFullDetail()` - Get complete reference information
-  - `deriveFromTestCase()` - Create derived test cases
+  - `deriveFromTestCase()` - Create semantic search test cases
   - `addManualReference()` - Add manual references
   - `removeReference()` - Remove references
   - `createRAGReferences()` - Create AI-generated references

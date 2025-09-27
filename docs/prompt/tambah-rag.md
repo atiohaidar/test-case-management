@@ -1172,7 +1172,7 @@ Excellent! Frontend guideline sudah lengkap dan konsisten dengan sistem backend 
 
 ✅ **Sistem Reference/Derived yang Unified:**
 - TestCaseReference table untuk semua jenis reference
-- 3 jenis reference type: manual, rag_retrieval, derived
+- 3 jenis reference type: manual, rag_retrieval, semantic_search
 - Bidirectional tracking dengan references dan referencedBy
 - Similarity score untuk RAG references
 

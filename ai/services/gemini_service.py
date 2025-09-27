@@ -26,12 +26,21 @@ class GeminiService:
     """Handles Google Gemini AI operations for test case generation"""
 
     def __init__(self):
-        self.api_key = os.getenv('GEMINI_API_KEY')
-        if self.api_key:
-            genai.configure(api_key=self.api_key)
-            logger.info("Gemini AI configured successfully")
-        else:
-            logger.warning("Gemini API key not found - AI generation will not be available")
+        # Don't initialize API key here - do it lazily when needed
+        self._api_key = None
+        self._configured = False
+
+    @property
+    def api_key(self):
+        if self._api_key is None:
+            self._api_key = os.getenv('GEMINI_API_KEY')
+            if self._api_key and not self._configured:
+                genai.configure(api_key=self._api_key)
+                self._configured = True
+                logger.info("Gemini AI configured successfully")
+            elif not self._api_key:
+                logger.warning("Gemini API key not found - AI generation will not be available")
+        return self._api_key
 
     async def generate_test_case(self, request: GenerateTestCaseRequest) -> GenerateTestCaseResponse:
         """Generate a test case using Gemini AI with optional RAG"""
@@ -86,7 +95,7 @@ class GeminiService:
                     # Continue with pure AI if RAG fails
 
             # Initialize Gemini model
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.0-flash')
 
             # Build the system prompt (enhanced for RAG)
             system_prompt = await self._build_system_prompt(generation_method == "rag")

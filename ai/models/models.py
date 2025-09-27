@@ -3,7 +3,7 @@ Pydantic models for AI service requests and responses.
 Separated from main.py for better organization and maintainability.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 
 
@@ -85,6 +85,8 @@ class TokenEstimateRequest(BaseModel):
     maxRAGReferences: int = Field(default=3)
 
 class TokenEstimateResponse(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     estimated_input_tokens: int
     estimated_cost_usd: Optional[float] = None
     model_name: str
@@ -93,6 +95,8 @@ class TokenEstimateResponse(BaseModel):
 
 # Statistics Models
 class StatisticsResponse(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     total_test_cases: int
     embedded_test_cases: int
     embedding_coverage: float

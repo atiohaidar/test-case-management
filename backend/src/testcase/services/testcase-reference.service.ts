@@ -195,7 +195,7 @@ export class TestCaseReferenceService {
             data: {
                 sourceId: newTestCase.id,
                 targetId: referenceId,
-                referenceType: 'derived',
+                referenceType: 'semantic_search',
                 similarityScore: null, // No similarity score for manual derivation
             },
         });
@@ -311,5 +311,41 @@ export class TestCaseReferenceService {
             referenceType: ref.referenceType,
             target: ref.target
         }));
+    }
+
+    async createReference(sourceId: string, targetId: string, referenceType: string, ragReferences?: any[]) {
+        // Validate both test cases exist
+        const [sourceTestCase, targetTestCase] = await Promise.all([
+            this.prisma.testCase.findUnique({ where: { id: sourceId } }),
+            this.prisma.testCase.findUnique({ where: { id: targetId } })
+        ]);
+
+        if (!sourceTestCase) {
+            throw new BusinessException(
+                'Source test case not found',
+                HttpStatus.NOT_FOUND,
+                'SOURCE_TESTCASE_NOT_FOUND'
+            );
+        }
+        if (!targetTestCase) {
+            throw new BusinessException(
+                'Target test case not found',
+                HttpStatus.NOT_FOUND,
+                'TARGET_TESTCASE_NOT_FOUND'
+            );
+        }
+
+        // Create the reference
+        const reference = await this.prisma.testCaseReference.create({
+            data: {
+                sourceId,
+                targetId,
+                referenceType,
+                similarityScore: referenceType === 'rag_retrieval' && ragReferences ?
+                    ragReferences.find(ref => ref.testCaseId === targetId)?.similarity : null,
+            },
+        });
+
+        return reference;
     }
 }

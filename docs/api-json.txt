@@ -214,10 +214,11 @@
         ]
       }
     },
-    "/testcases/{id}/derived": {
+    "/testcases/{id}/full": {
       "get": {
-        "operationId": "TestCaseController_getDerived",
-        "summary": "Get test cases derived from this test case",
+        "operationId": "TestCaseController_findOneFullDetail",
+        "summary": "Get a test case with complete reference and semantic search information",
+        "description": "Returns test case data along with all outgoing references and incoming references (semantic search test cases)",
         "parameters": [
           {
             "name": "id",
@@ -230,7 +231,41 @@
         ],
         "responses": {
           "200": {
-            "description": "List of derived test cases",
+            "description": "Test case with complete reference information found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCaseFullDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test case not found"
+          }
+        },
+        "tags": [
+          "testcases"
+        ]
+      }
+    },
+    "/testcases/{id}/derived": {
+      "get": {
+        "operationId": "TestCaseController_getDerived",
+        "summary": "Get test cases from semantic search of this test case",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of semantic search test cases",
             "content": {
               "application/json": {
                 "schema": {
@@ -254,7 +289,7 @@
     "/testcases/derive/{referenceId}": {
       "post": {
         "operationId": "TestCaseController_deriveTestCase",
-        "summary": "Create a new test case based on an existing one",
+        "summary": "Create a new test case from semantic search result",
         "parameters": [
           {
             "name": "referenceId",
@@ -277,7 +312,7 @@
         },
         "responses": {
           "201": {
-            "description": "Test case derived successfully",
+            "description": "Test case created from semantic search successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -460,6 +495,69 @@
           "testcases"
         ]
       }
+    },
+    "/monitoring/health": {
+      "get": {
+        "operationId": "MonitoringController_getHealth",
+        "summary": "Get basic health status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Application is healthy"
+          },
+          "503": {
+            "description": "Application is unhealthy"
+          }
+        },
+        "tags": [
+          "Monitoring"
+        ]
+      }
+    },
+    "/monitoring/health/detailed": {
+      "get": {
+        "operationId": "MonitoringController_getDetailedHealth",
+        "summary": "Get detailed health status with system metrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Detailed health information"
+          }
+        },
+        "tags": [
+          "Monitoring"
+        ]
+      }
+    },
+    "/monitoring/metrics": {
+      "get": {
+        "operationId": "MonitoringController_getMetrics",
+        "summary": "Get Prometheus metrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Prometheus metrics in text format"
+          }
+        },
+        "tags": [
+          "Monitoring"
+        ]
+      }
+    },
+    "/monitoring/ping": {
+      "get": {
+        "operationId": "MonitoringController_getPing",
+        "summary": "Simple ping endpoint for load balancer health checks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Pong"
+          }
+        },
+        "tags": [
+          "Monitoring"
+        ]
+      }
     }
   },
   "info": {
@@ -492,6 +590,23 @@
         "required": [
           "step",
           "expectedResult"
+        ]
+      },
+      "RAGReferenceDto": {
+        "type": "object",
+        "properties": {
+          "testCaseId": {
+            "type": "string",
+            "description": "ID test case yang dijadikan referensi"
+          },
+          "similarity": {
+            "type": "number",
+            "description": "Similarity score dengan prompt (0-1)"
+          }
+        },
+        "required": [
+          "testCaseId",
+          "similarity"
         ]
       },
       "CreateTestCaseDto": {
@@ -550,6 +665,38 @@
           "aiSuggestions": {
             "type": "string",
             "description": "AI suggestions for improvement"
+          },
+          "tokenUsage": {
+            "type": "object",
+            "description": "Token usage from Gemini AI"
+          },
+          "referenceTo": {
+            "type": "string",
+            "description": "ID test case yang dijadikan referensi (untuk semantic search flow)"
+          },
+          "referenceType": {
+            "type": "string",
+            "description": "Tipe reference",
+            "enum": [
+              "manual",
+              "rag_retrieval",
+              "semantic_search"
+            ]
+          },
+          "aiGenerationMethod": {
+            "type": "string",
+            "description": "Metode AI generation yang digunakan",
+            "enum": [
+              "pure_ai",
+              "rag"
+            ]
+          },
+          "ragReferences": {
+            "description": "Referensi test case yang digunakan dalam RAG (jika ada)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RAGReferenceDto"
+            }
           }
         },
         "required": [
@@ -606,6 +753,30 @@
           },
           "referenceId": {
             "type": "string"
+          },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Whether this test case was AI-generated"
+          },
+          "originalPrompt": {
+            "type": "string",
+            "description": "Original prompt used for AI generation"
+          },
+          "aiConfidence": {
+            "type": "number",
+            "description": "AI confidence score (0-1)"
+          },
+          "aiSuggestions": {
+            "type": "string",
+            "description": "AI suggestions for improvement"
+          },
+          "aiGenerationMethod": {
+            "type": "string",
+            "description": "AI generation method"
+          },
+          "tokenUsage": {
+            "type": "object",
+            "description": "Token usage from Gemini AI"
           },
           "createdAt": {
             "format": "date-time",
@@ -696,28 +867,6 @@
           "prompt"
         ]
       },
-      "RAGReferenceDto": {
-        "type": "object",
-        "properties": {
-          "testCaseId": {
-            "type": "string",
-            "description": "ID test case yang dijadikan referensi"
-          },
-          "similarity": {
-            "type": "number",
-            "description": "Similarity score dengan prompt (0-1)"
-          },
-          "testCase": {
-            "type": "object",
-            "description": "Data test case referensi"
-          }
-        },
-        "required": [
-          "testCaseId",
-          "similarity",
-          "testCase"
-        ]
-      },
       "AIGeneratedTestCaseResponseDto": {
         "type": "object",
         "properties": {
@@ -802,6 +951,24 @@
             "items": {
               "$ref": "#/components/schemas/RAGReferenceDto"
             }
+          },
+          "tokenUsage": {
+            "type": "object",
+            "properties": {
+              "inputTokens": {
+                "type": "number"
+              },
+              "outputTokens": {
+                "type": "number"
+              },
+              "totalTokens": {
+                "type": "number"
+              },
+              "estimatedCost": {
+                "type": "number"
+              }
+            },
+            "description": "Informasi penggunaan token Gemini API"
           }
         },
         "required": [
@@ -817,7 +984,8 @@
           "confidence",
           "aiSuggestions",
           "aiGenerationMethod",
-          "ragReferences"
+          "ragReferences",
+          "tokenUsage"
         ]
       },
       "TestCaseReferenceTargetDto": {
@@ -926,6 +1094,30 @@
           "referenceId": {
             "type": "string"
           },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Whether this test case was AI-generated"
+          },
+          "originalPrompt": {
+            "type": "string",
+            "description": "Original prompt used for AI generation"
+          },
+          "aiConfidence": {
+            "type": "number",
+            "description": "AI confidence score (0-1)"
+          },
+          "aiSuggestions": {
+            "type": "string",
+            "description": "AI suggestions for improvement"
+          },
+          "aiGenerationMethod": {
+            "type": "string",
+            "description": "AI generation method"
+          },
+          "tokenUsage": {
+            "type": "object",
+            "description": "Token usage from Gemini AI"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -958,6 +1150,185 @@
           "createdAt",
           "updatedAt",
           "references",
+          "derivedCount"
+        ]
+      },
+      "DerivedTestCaseReferenceInfoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "referenceType": {
+            "type": "string",
+            "description": "Type of reference: manual_reference, rag_retrieval, or derived"
+          },
+          "similarityScore": {
+            "type": "number",
+            "description": "Similarity score (for RAG references)"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "referenceType",
+          "createdAt"
+        ]
+      },
+      "DerivedTestCaseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Whether this test case was AI-generated"
+          },
+          "referenceInfo": {
+            "$ref": "#/components/schemas/DerivedTestCaseReferenceInfoDto"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "priority",
+          "createdAt",
+          "aiGenerated",
+          "referenceInfo"
+        ]
+      },
+      "TestCaseFullDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "expectedResult": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "referenceId": {
+            "type": "string"
+          },
+          "aiGenerated": {
+            "type": "boolean",
+            "description": "Whether this test case was AI-generated"
+          },
+          "originalPrompt": {
+            "type": "string",
+            "description": "Original prompt used for AI generation"
+          },
+          "aiConfidence": {
+            "type": "number",
+            "description": "AI confidence score (0-1)"
+          },
+          "aiSuggestions": {
+            "type": "string",
+            "description": "AI suggestions for improvement"
+          },
+          "aiGenerationMethod": {
+            "type": "string",
+            "description": "AI generation method"
+          },
+          "tokenUsage": {
+            "type": "object",
+            "description": "Token usage from Gemini AI"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "references": {
+            "description": "All references from this test case (outgoing references)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestCaseReferenceDto"
+            }
+          },
+          "derivedTestCases": {
+            "description": "All test cases that reference this one (incoming references/derived)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DerivedTestCaseDto"
+            }
+          },
+          "referencesCount": {
+            "type": "number",
+            "description": "Total number of outgoing references"
+          },
+          "derivedCount": {
+            "type": "number",
+            "description": "Total number of derived test cases"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "priority",
+          "steps",
+          "expectedResult",
+          "tags",
+          "createdAt",
+          "updatedAt",
+          "references",
+          "derivedTestCases",
+          "referencesCount",
           "derivedCount"
         ]
       },

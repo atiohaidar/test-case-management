@@ -113,7 +113,7 @@ TestCaseModule
 
 #### **TestCaseReferenceService**
 - `getWithReference()` - Get test case with its outgoing references
-- `getDerivedTestCases()` - Get test cases that reference this one
+- `getSemanticSearchTestCases()` - Get test cases that reference this one
 - `getFullDetail()` - Get complete test case with all references
 - `deriveFromTestCase()` - Create new test case based on existing one
 - `addManualReference()` - Add manual reference between test cases
@@ -499,7 +499,7 @@ interface AIGenerationMetadata {
 ### **Test Case Reference Feature**:
 - **referenceId**: Menyimpan ID test case yang dijadikan referensi saat membuat test case baru
 - **Derivation Flow**: User bisa create test case baru berdasarkan test case existing
-- **Traceability**: Bisa track test case mana yang menjadi "parent" dan melihat derived test cases
+- **Traceability**: Bisa track test case mana yang menjadi "parent" dan melihat semantic search test cases
 - **Frontend Integration**: Support untuk search → select → edit → save as new workflow
 
 ---
@@ -621,7 +621,7 @@ GET /testcases/:id/with-reference
 # Get Test Case with Complete Reference & Derived Info
 GET /testcases/:id/full
 
-# Get Derived Test Cases
+# Get Semantic Search Test Cases
 GET /testcases/:id/derived
 
 # Update Test Case
@@ -841,17 +841,17 @@ curl -X GET http://localhost:3000/testcases/{test-case-id}/full
   ],
   
   // Incoming References (test cases that refer to this one)
-  "derivedTestCases": [
+  "semanticSearchTestCases": [
     {
       "id": "derived-uuid",
-      "name": "Derived Test Case",
+      "name": "Semantic Search Test Case",
       "type": "negative",
       "priority": "medium",
       "createdAt": "2025-09-19T11:00:00Z",
       "aiGenerated": true,
       "referenceInfo": {
         "id": "ref-uuid",
-        "referenceType": "derived",
+        "referenceType": "semantic_search",
         "similarityScore": null,
         "createdAt": "2025-09-19T11:00:00Z"
       }
@@ -860,7 +860,7 @@ curl -X GET http://localhost:3000/testcases/{test-case-id}/full
   
   // Summary counts
   "referencesCount": 1,
-  "derivedCount": 1
+  "semanticSearchCount": 1
 }
 ```
 
@@ -914,9 +914,9 @@ curl -X PATCH http://localhost:3000/testcases/{test-case-id} \
   }'
 ```
 
-### 8. **Get Derived Test Cases**
+### 8. **Get Semantic Search Test Cases**
 ```bash
-curl -X GET http://localhost:3000/testcases/{reference-test-case-id}/derived
+curl -X GET http://localhost:3000/testcases/{reference-test-case-id}/semantic-search
 ```
 
 ### 9. **Delete Test Case**
@@ -950,8 +950,8 @@ ORIGINAL_ID=$(curl -X POST http://localhost:3000/testcases \
 
 echo "Original Test Case ID: $ORIGINAL_ID"
 
-# Step 2: Create derived test case (negative scenario)
-DERIVED_ID=$(curl -X POST http://localhost:3000/testcases/derive/$ORIGINAL_ID \
+# Step 2: Create semantic search test case (negative scenario)
+SEMANTIC_SEARCH_ID=$(curl -X POST http://localhost:3000/testcases/derive/$ORIGINAL_ID \
   -H "Content-Type: application/json" \
   -d '{
     "name": "User Registration - Invalid Email",
@@ -962,13 +962,13 @@ DERIVED_ID=$(curl -X POST http://localhost:3000/testcases/derive/$ORIGINAL_ID \
     "tags": ["registration", "user", "negative", "email-validation"]
   }' | jq -r '.id')
 
-echo "Derived Test Case ID: $DERIVED_ID"
+echo "Semantic Search Test Case ID: $SEMANTIC_SEARCH_ID"
 
-# Step 3: Get derived test case with reference info
+# Step 3: Get semantic search test case with reference info
 curl -X GET http://localhost:3000/testcases/$DERIVED_ID/with-reference | jq '.'
 
-# Step 4: Get all test cases derived from original
-curl -X GET http://localhost:3000/testcases/$ORIGINAL_ID/derived | jq '.'
+# Step 4: Get all test cases from semantic search of original
+curl -X GET http://localhost:3000/testcases/$ORIGINAL_ID/semantic-search | jq '.'
 
 # Step 5: Search for registration related test cases
 curl -X GET "http://localhost:3000/testcases/search?query=registration%20user&minSimilarity=0.5&limit=10" | jq '.'

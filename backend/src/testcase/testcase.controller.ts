@@ -82,14 +82,14 @@ export class TestCaseController {
   }
 
   @Get(':id/full')
-  @ApiOperation({ 
-    summary: 'Get a test case with complete reference and derived information',
-    description: 'Returns test case data along with all outgoing references and incoming references (derived test cases)'
+  @ApiOperation({
+    summary: 'Get a test case with complete reference and semantic search information',
+    description: 'Returns test case data along with all outgoing references and incoming references (semantic search test cases)'
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Test case with complete reference information found', 
-    type: TestCaseFullDetailDto 
+  @ApiResponse({
+    status: 200,
+    description: 'Test case with complete reference information found',
+    type: TestCaseFullDetailDto
   })
   @ApiResponse({ status: 404, description: 'Test case not found' })
   async findOneFullDetail(@Param('id') id: string) {
@@ -97,16 +97,16 @@ export class TestCaseController {
   }
 
   @Get(':id/derived')
-  @ApiOperation({ summary: 'Get test cases derived from this test case' })
-  @ApiResponse({ status: 200, description: 'List of derived test cases', type: [TestCaseDto] })
+  @ApiOperation({ summary: 'Get test cases from semantic search of this test case' })
+  @ApiResponse({ status: 200, description: 'List of semantic search test cases', type: [TestCaseDto] })
   @ApiResponse({ status: 404, description: 'Test case not found' })
   async getDerived(@Param('id') id: string) {
     return this.testCaseService.getDerivedTestCases(id);
   }
 
   @Post('derive/:referenceId')
-  @ApiOperation({ summary: 'Create a new test case based on an existing one' })
-  @ApiResponse({ status: 201, description: 'Test case derived successfully', type: TestCaseDto })
+  @ApiOperation({ summary: 'Create a new test case from semantic search result' })
+  @ApiResponse({ status: 201, description: 'Test case created from semantic search successfully', type: TestCaseDto })
   @ApiResponse({ status: 404, description: 'Reference test case not found' })
   async deriveTestCase(
     @Param('referenceId') referenceId: string,

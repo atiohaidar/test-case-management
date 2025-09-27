@@ -55,14 +55,14 @@ graph TB
 **Important Changes:**
 - ❌ **REMOVED**: Old `referenceId` field (deprecated)
 - ✅ **NEW**: Unified `TestCaseReference` system for all reference types
-- ✅ **Enhanced**: All references now have `referenceType`: `'manual' | 'rag_retrieval' | 'derived'`
+- ✅ **Enhanced**: All references now have `referenceType`: `'manual' | 'rag_retrieval' | 'semantic_search'`
 - ✅ **Traceability**: Complete bidirectional reference tracking
 
 ### 🔗 Reference System Explained
 
 #### Reference Types
 ```typescript
-type ReferenceType = 'manual' | 'rag_retrieval' | 'derived';
+type ReferenceType = 'manual' | 'rag_retrieval' | 'semantic_search';
 
 interface TestCaseReference {
   id: string;
@@ -90,7 +90,7 @@ interface TestCaseReference {
 - Ada similarity score (0-1)
 - Menunjukkan test case mana yang mempengaruhi AI generation
 
-**3. Derived Reference** (`referenceType: 'derived'`)
+**3. Derived Reference** (`referenceType: 'semantic_search'`)
 - Dibuat saat user menggunakan "derive" feature
 - User membuat test case baru berdasarkan test case existing
 - Menunjukkan parent-child relationship
@@ -268,7 +268,7 @@ interface TestCaseDetail {
     id: string;
     targetId: string;
     similarityScore?: number;
-    referenceType: 'manual' | 'rag_retrieval' | 'derived';
+    referenceType: 'manual' | 'rag_retrieval' | 'semantic_search';
     target: {
       id: string;
       name: string;
@@ -282,7 +282,7 @@ interface TestCaseDetail {
     id: string;
     sourceId: string;
     similarityScore?: number;
-    referenceType: 'manual' | 'rag_retrieval' | 'derived';
+    referenceType: 'manual' | 'rag_retrieval' | 'semantic_search';
     source: {
       id: string;
       name: string;

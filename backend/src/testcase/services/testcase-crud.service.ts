@@ -25,6 +25,7 @@ export class TestCaseCrudService {
                     originalPrompt: createTestCaseDto.originalPrompt,
                     aiConfidence: createTestCaseDto.aiConfidence,
                     aiSuggestions: createTestCaseDto.aiSuggestions,
+                    aiGenerationMethod: createTestCaseDto.aiGenerationMethod,
                     tokenUsage: createTestCaseDto.tokenUsage,
                 } as any,
             });

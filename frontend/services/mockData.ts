@@ -93,7 +93,7 @@ export const mockTestCaseDetails: TestCaseDetail[] = [
       { id: 'ref-02', targetId: 'tc-004', referenceType: 'manual', target: { id: 'tc-004', name: 'Add Item to Shopping Cart', type: 'positive', priority: 'high' } },
     ],
     referencedBy: [
-       { id: 'ref-03', sourceId: 'tc-003', referenceType: 'rag_retrieval', similarityScore: 0.82, source: { id: 'tc-003', name: 'User Profile Update', type: 'positive', priority: 'medium' } },
+      { id: 'ref-03', sourceId: 'tc-003', referenceType: 'rag_retrieval', similarityScore: 0.82, source: { id: 'tc-003', name: 'User Profile Update', type: 'positive', priority: 'medium' } },
     ],
   },
   {
@@ -122,7 +122,7 @@ export const mockTestCaseDetails: TestCaseDetail[] = [
     ],
     referencedBy: [
       { id: 'ref-05', sourceId: 'tc-001', referenceType: 'manual', source: { id: 'tc-001', name: 'Successful User Login', type: 'positive', priority: 'high' } },
-      { id: 'ref-06', sourceId: 'tc-003', referenceType: 'derived', source: { id: 'tc-003', name: 'User Profile Update', type: 'positive', priority: 'medium' } },
+      { id: 'ref-06', sourceId: 'tc-003', referenceType: 'semantic_search', source: { id: 'tc-003', name: 'User Profile Update', type: 'positive', priority: 'medium' } },
     ],
   },
   {
@@ -147,7 +147,7 @@ export const mockTestCaseDetails: TestCaseDetail[] = [
     createdAt: '2023-10-24T09:00:00Z',
     updatedAt: '2023-10-24T09:45:00Z',
     references: [
-       { id: 'ref-03', targetId: 'tc-001', referenceType: 'rag_retrieval', similarityScore: 0.82, target: { id: 'tc-001', name: 'Successful User Login', type: 'positive', priority: 'high' } },
+      { id: 'ref-03', targetId: 'tc-001', referenceType: 'rag_retrieval', similarityScore: 0.82, target: { id: 'tc-001', name: 'Successful User Login', type: 'positive', priority: 'high' } },
     ],
     referencedBy: [],
   },

@@ -15,6 +15,23 @@ class TestStepDto {
   expectedResult: string;
 }
 
+class RAGReferenceDto {
+  @ApiProperty({ description: 'ID test case yang dijadikan referensi' })
+  @IsString()
+  @IsNotEmpty()
+  testCaseId: string;
+
+  @ApiProperty({ description: 'Similarity score dengan prompt (0-1)' })
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  similarity: number;
+
+  @ApiPropertyOptional({ description: 'Full test case object (optional, for AI responses)' })
+  @IsOptional()
+  testCase?: any;
+}
+
 export class CreateTestCaseDto {
   @ApiProperty()
   @IsString()
@@ -76,4 +93,36 @@ export class CreateTestCaseDto {
   @ApiPropertyOptional({ description: 'Token usage from Gemini AI' })
   @IsOptional()
   tokenUsage?: any;
+
+  // Reference Management (for semantic search -> edit -> save flow)
+  @ApiPropertyOptional({ description: 'ID test case yang dijadikan referensi (untuk semantic search flow)' })
+  @IsString()
+  @IsOptional()
+  referenceTo?: string;
+
+  @ApiPropertyOptional({
+    description: 'Tipe reference',
+    enum: ['manual', 'rag_retrieval', 'semantic_search']
+  })
+  @IsEnum(['manual', 'rag_retrieval', 'semantic_search'])
+  @IsOptional()
+  referenceType?: 'manual' | 'rag_retrieval' | 'semantic_search';
+
+  @ApiPropertyOptional({
+    description: 'Metode AI generation yang digunakan',
+    enum: ['pure_ai', 'rag']
+  })
+  @IsEnum(['pure_ai', 'rag'])
+  @IsOptional()
+  aiGenerationMethod?: string;
+
+  @ApiPropertyOptional({
+    type: [RAGReferenceDto],
+    description: 'Referensi test case yang digunakan dalam RAG (jika ada)'
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RAGReferenceDto)
+  @IsOptional()
+  ragReferences?: RAGReferenceDto[];
 }

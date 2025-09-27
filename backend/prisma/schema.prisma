@@ -60,7 +60,7 @@ model TestCaseReference {
   sourceId         String    // Test case yang dibuat
   targetId         String    // Test case yang dijadikan referensi
   similarityScore  Float?    // Similarity score dari RAG (0-1)
-  referenceType    String    // "manual" | "rag_retrieval" | "derived"
+  referenceType    String    // "manual" | "rag_retrieval" | "semantic_search"
   createdAt        DateTime  @default(now())
 
   source           TestCase  @relation("SourceTestCase", fields: [sourceId], references: [id], onDelete: Cascade)

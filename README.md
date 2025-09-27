@@ -376,7 +376,7 @@ GET /testcases/cmfq39fxd00019nknx5by8mz6/derived
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
 | `GET` | `/testcases` | Ambil semua test case |
-| `POST` | `/testcases` | Buat test case baru |
+| `POST` | `/testcases` | **Buat test case baru (Unified API)** - Mendukung manual, semantic search, dan AI generation dengan RAG |
 | `GET` | `/testcases/:id` | Ambil test case spesifik |
 | `PATCH` | `/testcases/:id` | Update test case |
 | `DELETE` | `/testcases/:id` | Hapus test case |
@@ -385,61 +385,148 @@ GET /testcases/cmfq39fxd00019nknx5by8mz6/derived
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
 | `GET` | `/testcases/search` | Pencarian semantik dengan AI |
-| `POST` | `/testcases/generate-with-ai` | Generate test case (preview only) |
-| `POST` | `/testcases/generate-and-save-with-ai` | Generate dan langsung save |
+| `POST` | `/testcases/generate-with-ai` | Generate test case (preview only) - Deprecated, gunakan POST /testcases |
+| `POST` | `/testcases/generate-and-save-with-ai` | Generate dan langsung save - Deprecated, gunakan POST /testcases |
 
 ### 🔗 **Keterkaitan Test Case & RAG**
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
 | `GET` | `/testcases/:id/with-reference` | Ambil test case dengan RAG references |
-| `GET` | `/testcases/:id/derived` | Ambil semua test case turunan |
+| `GET` | `/testcases/:id/semantic-search` | Ambil semua test case dari semantic search |
 | `POST` | `/testcases/derive/:referenceId` | Buat test case berdasarkan yang ada |
 
-### 🚀 **Contoh Penggunaan RAG API**
+### 🎯 **Unified API Flow - POST /testcases**
 
-#### Generate Test Case dengan RAG
+**POST /testcases** sekarang mendukung semua mode pembuatan test case dalam satu endpoint:
+
+#### 1. **Manual Creation** (Default)
 ```bash
-# RAG-Enhanced Generation (Default)
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk logout user",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.7,
-    "maxRAGReferences": 3,
-    "preferredType": "positive",
-    "preferredPriority": "medium"
-  }'
-
-# Pure AI Generation (Tanpa RAG)
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Buat test case untuk logout user",
-    "useRAG": false,
-    "preferredType": "positive"
+    "name": "Test Login Manual",
+    "description": "Manual test case creation",
+    "type": "positive",
+    "priority": "high",
+    "steps": [{"step": "Login", "expectedResult": "Success"}],
+    "expectedResult": "User logged in",
+    "tags": ["login"]
   }'
 ```
 
-#### Generate dan Save dengan RAG
+#### 2. **Semantic Search Reference**
 ```bash
-curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk reset password",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.6,
-    "maxRAGReferences": 3,
-    "context": "Aplikasi web e-commerce"
+    "name": "Test Login with Reference",
+    "description": "Test case with semantic search reference",
+    "type": "positive",
+    "priority": "high",
+    "steps": [{"step": "Login", "expectedResult": "Success"}],
+    "expectedResult": "User logged in",
+    "tags": ["login"],
+    "referenceTo": "existing-test-case-id",
+    "referenceType": "semantic_search"
+  }'
+```
+
+#### 3. **AI Generation with RAG**
+```bash
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "AI Generated Test Case",
+    "description": "AI generated with RAG",
+    "type": "positive",
+    "priority": "high",
+    "steps": [{"step": "Login", "expectedResult": "Success"}],
+    "expectedResult": "User logged in",
+    "tags": ["login"],
+    "aiGenerated": true,
+    "originalPrompt": "Create login test case",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.85,
+    "ragReferences": [
+      {
+        "testCaseId": "ref-1",
+        "similarity": 0.82
+      }
+    ]
+  }'
+```
+
+### 🚀 **Contoh Penggunaan RAG API**
+
+#### Generate Test Case dengan RAG (Unified API)
+```bash
+# RAG-Enhanced Generation (Default)
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Logout User",
+    "description": "Memverifikasi proses logout user",
+    "type": "positive",
+    "priority": "medium",
+    "steps": [
+      {
+        "step": "User sudah login",
+        "expectedResult": "Dashboard ditampilkan"
+      },
+      {
+        "step": "Klik logout",
+        "expectedResult": "User logout dan redirect ke login"
+      }
+    ],
+    "expectedResult": "User berhasil logout",
+    "tags": ["logout", "authentication"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk logout user",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.85,
+    "ragReferences": [
+      {
+        "testCaseId": "existing-login-test-id",
+        "similarity": 0.82
+      }
+    ]
+  }'
+
+# Pure AI Generation (Tanpa RAG)
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Reset Password",
+    "description": "Test reset password tanpa RAG",
+    "type": "positive",
+    "priority": "medium",
+    "steps": [
+      {
+        "step": "Klik forgot password",
+        "expectedResult": "Form reset password muncul"
+      }
+    ],
+    "expectedResult": "Email reset dikirim",
+    "tags": ["password", "reset"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk reset password",
+    "aiGenerationMethod": "pure_ai",
+    "aiConfidence": 0.75
   }'
 ```
 
 ### 🎯 **Parameter RAG**
 | Parameter | Type | Default | Deskripsi |
 |-----------|------|---------|-----------|
-| `useRAG` | boolean | true | Enable/disable RAG |
-| `ragSimilarityThreshold` | number (0-1) | 0.7 | Minimum similarity untuk referensi |
-| `maxRAGReferences` | number (1-10) | 3 | Maksimal jumlah referensi |
+| `aiGenerated` | boolean | false | Menandai test case dibuat oleh AI |
+| `originalPrompt` | string | null | Prompt asli yang digunakan untuk generate |
+| `aiGenerationMethod` | string | null | "rag" atau "pure_ai" |
+| `aiConfidence` | number (0-1) | null | Tingkat confidence AI |
+| `ragReferences` | array | [] | Array referensi RAG dengan similarity |
+| `referenceTo` | string | null | ID test case referensi (semantic search) |
+| `referenceType` | string | null | "manual", "rag_retrieval", atau "semantic_search" |
+
+---
 
 ---
 
@@ -511,6 +598,7 @@ npx prisma db push         # Sync schema
       "priority": "high",
       "tags": ["login", "autentikasi"],
       "referenceId": null,
+      "aiGenerated": false,
       "createdAt": "2025-09-19T00:15:47.891Z"
     }
   ]
@@ -529,6 +617,34 @@ npx prisma db push         # Sync schema
     }
   ],
   "totalResults": 1
+}
+```
+
+### 🤖 **Sukses - AI Generated Test Case**
+```json
+{
+  "id": "cmfq39fxd00019nknx5by8mz7",
+  "name": "Test Logout User",
+  "description": "Memverifikasi proses logout user",
+  "type": "positive",
+  "priority": "medium",
+  "tags": ["logout", "authentication"],
+  "aiGenerated": true,
+  "originalPrompt": "Buat test case untuk logout user",
+  "aiGenerationMethod": "rag",
+  "aiConfidence": 0.85,
+  "ragReferences": [
+    {
+      "testCaseId": "cmfq39fxd00019nknx5by8mz6",
+      "similarity": 0.82,
+      "testCase": {
+        "id": "cmfq39fxd00019nknx5by8mz6",
+        "name": "Test Login Berhasil",
+        "type": "positive"
+      }
+    }
+  ],
+  "createdAt": "2025-09-19T00:16:00.000Z"
 }
 ```
 

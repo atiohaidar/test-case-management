@@ -320,26 +320,51 @@ curl -X POST http://localhost:3000/testcases \
   }'
 ```
 
-### Step 2: Test RAG Generation
+### Step 2: Test RAG Generation (Unified API)
 
 #### Example 1: RAG untuk Login-related Test Case
 ```bash
-# Prompt yang akan mencari referensi login test case
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
+# Prompt yang akan mencari referensi login test case - menggunakan unified POST /testcases
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk logout user dari sistem",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.6,
-    "maxRAGReferences": 3,
-    "preferredType": "positive",
-    "preferredPriority": "medium"
+    "name": "Test Logout User dari Sistem",
+    "description": "Memverifikasi proses logout user dari sistem",
+    "type": "positive",
+    "priority": "medium",
+    "steps": [
+      {
+        "step": "User sudah dalam keadaan login",
+        "expectedResult": "Dashboard user ditampilkan"
+      },
+      {
+        "step": "Klik menu profile atau user settings",
+        "expectedResult": "Dropdown menu ditampilkan"
+      },
+      {
+        "step": "Klik tombol Logout",
+        "expectedResult": "User berhasil logout dan diarahkan ke halaman login"
+      }
+    ],
+    "expectedResult": "User berhasil logout dan tidak dapat mengakses halaman yang memerlukan autentikasi",
+    "tags": ["logout", "authentication", "positive"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk logout user dari sistem",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.85,
+    "ragReferences": [
+      {
+        "testCaseId": "cm123abc456",
+        "similarity": 0.82
+      }
+    ]
   }'
 ```
 
 **Expected RAG Response:**
 ```json
 {
+  "id": "cm456def789",
   "name": "Test Logout User dari Sistem",
   "description": "Memverifikasi proses logout user dari sistem",
   "type": "positive",
@@ -360,16 +385,10 @@ curl -X POST http://localhost:3000/testcases/generate-with-ai \
   ],
   "expectedResult": "User berhasil logout dan tidak dapat mengakses halaman yang memerlukan autentikasi",
   "tags": ["logout", "authentication", "positive"],
-  "originalPrompt": "Buat test case untuk logout user dari sistem",
   "aiGenerated": true,
-  "confidence": 0.85,
+  "originalPrompt": "Buat test case untuk logout user dari sistem",
   "aiGenerationMethod": "rag",
-  "tokenUsage": {
-    "inputTokens": 120,
-    "outputTokens": 350,
-    "totalTokens": 470,
-    "estimatedCost": 0.000235
-  },
+  "aiConfidence": 0.85,
   "ragReferences": [
     {
       "testCaseId": "cm123abc456",
@@ -382,38 +401,88 @@ curl -X POST http://localhost:3000/testcases/generate-with-ai \
         "tags": ["login", "authentication"]
       }
     }
-  ]
+  ],
+  "createdAt": "2025-09-19T10:30:00Z"
 }
 ```
 
 #### Example 2: RAG untuk Registration-related Test Case
 ```bash
-# Prompt yang akan mencari referensi registration test case
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
+# Prompt yang akan mencari referensi registration test case - unified API
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk registrasi dengan email yang sudah terdaftar",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.6,
-    "maxRAGReferences": 3,
-    "preferredType": "negative",
-    "preferredPriority": "high"
+    "name": "Test Registrasi dengan Email Sudah Terdaftar",
+    "description": "Memverifikasi bahwa sistem menolak registrasi dengan email yang sudah terdaftar",
+    "type": "negative",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Buka halaman registrasi",
+        "expectedResult": "Form registrasi ditampilkan"
+      },
+      {
+        "step": "Masukkan email yang sudah terdaftar",
+        "expectedResult": "Email berhasil diinput"
+      },
+      {
+        "step": "Masukkan data lainnya (nama, password)",
+        "expectedResult": "Data berhasil diinput"
+      },
+      {
+        "step": "Klik tombol Register",
+        "expectedResult": "Sistem menampilkan pesan error 'Email already exists'"
+      }
+    ],
+    "expectedResult": "User tidak dapat registrasi dan tetap di halaman registrasi dengan pesan error",
+    "tags": ["registration", "negative", "validation"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk registrasi dengan email yang sudah terdaftar",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.87,
+    "ragReferences": [
+      {
+        "testCaseId": "cm789ghi012",
+        "similarity": 0.79
+      }
+    ]
   }'
 ```
 
-#### Example 3: Generate and Save dengan RAG
+#### Example 3: Pure AI Generation (Tanpa RAG)
 ```bash
-# Langsung save ke database dengan RAG references
-curl -X POST http://localhost:3000/testcases/generate-and-save-with-ai \
+# AI Generation tanpa RAG references - unified API
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk reset password user",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.6,
-    "maxRAGReferences": 3,
-    "context": "Aplikasi web dengan sistem user management",
-    "preferredType": "positive",
-    "preferredPriority": "medium"
+    "name": "Test Reset Password",
+    "description": "Memverifikasi proses reset password user",
+    "type": "positive",
+    "priority": "medium",
+    "steps": [
+      {
+        "step": "Buka halaman login",
+        "expectedResult": "Halaman login ditampilkan"
+      },
+      {
+        "step": "Klik link 'Forgot Password'",
+        "expectedResult": "Form reset password muncul"
+      },
+      {
+        "step": "Masukkan email yang valid",
+        "expectedResult": "Email berhasil diinput"
+      },
+      {
+        "step": "Klik tombol 'Send Reset Link'",
+        "expectedResult": "Email reset password dikirim"
+      }
+    ],
+    "expectedResult": "User menerima email reset password dan dapat mengubah password",
+    "tags": ["password", "reset", "recovery"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk reset password user",
+    "aiGenerationMethod": "pure_ai",
+    "aiConfidence": 0.75
   }'
 ```
 
@@ -441,14 +510,15 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
   "originalPrompt": "Buat test case untuk reset password user",
   "aiConfidence": 0.87,
   "aiGenerationMethod": "rag",
-  "tokenUsage": {
-    "inputTokens": 140,
-    "outputTokens": 380,
-    "totalTokens": 520,
-    "estimatedCost": 0.000260
-  },
-  "createdAt": "2025-09-19T10:30:00Z",
-  "updatedAt": "2025-09-19T10:30:00Z",
+  "ragReferences": [
+    {
+      "testCaseId": "cm789ghi012",
+      "similarity": 0.79
+    }
+  ],
+  "createdAt": "2025-09-19T10:30:00Z"
+}
+```
   
   // Outgoing references (test cases this one refers to)
   "references": [
@@ -469,7 +539,7 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
   ],
   
   // Incoming references (test cases that reference this one)
-  "derivedTestCases": [
+  "semanticSearchTestCases": [
     {
       "id": "cm789ghi012",
       "name": "Test Reset Password dengan Email Invalid",
@@ -496,7 +566,7 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
 - **Complete Test Case Analysis**: Melihat seluruh network relationship
 - **Quality Assurance**: Menganalisis consistency berdasarkan references
 - **Test Case Dependencies**: Memahami impact analysis saat ada perubahan
-- **AI Generation Review**: Melihat kualitas RAG retrieval dan derived test cases
+- **AI Generation Review**: Melihat kualitas RAG retrieval dan semantic search test cases
 
 **Expected Response dengan References:**
 ```json
@@ -528,31 +598,79 @@ curl -X GET http://localhost:3000/testcases/{new-test-case-id}/full
 
 ### Comparison: Pure AI vs RAG
 
-#### Pure AI Generation
+#### Pure AI Generation (Unified API)
 ```bash
-# Generate tanpa RAG (Pure AI)
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
+# Generate tanpa RAG (Pure AI) - menggunakan unified POST /testcases
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk proses pembayaran",
-    "useRAG": false,
-    "preferredType": "positive",
-    "preferredPriority": "high"
+    "name": "Test Proses Pembayaran",
+    "description": "Memverifikasi proses pembayaran dengan kartu kredit",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Pilih produk dan proceed to checkout",
+        "expectedResult": "Halaman checkout ditampilkan"
+      },
+      {
+        "step": "Masukkan detail kartu kredit",
+        "expectedResult": "Data kartu berhasil diinput"
+      },
+      {
+        "step": "Klik tombol Pay Now",
+        "expectedResult": "Pembayaran berhasil diproses"
+      }
+    ],
+    "expectedResult": "Pembayaran berhasil dan order dikonfirmasi",
+    "tags": ["payment", "checkout", "positive"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk proses pembayaran",
+    "aiGenerationMethod": "pure_ai",
+    "aiConfidence": 0.78
   }'
 ```
 
-#### RAG Generation  
+#### RAG Generation (Unified API)
 ```bash
-# Generate dengan RAG (akan mencari test case relevan)
-curl -X POST http://localhost:3000/testcases/generate-with-ai \
+# Generate dengan RAG (akan mencari test case relevan) - unified POST /testcases
+curl -X POST http://localhost:3000/testcases \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "Buat test case untuk proses pembayaran",
-    "useRAG": true,
-    "ragSimilarityThreshold": 0.6,
-    "maxRAGReferences": 3,
-    "preferredType": "positive", 
-    "preferredPriority": "high"
+    "name": "Test Proses Pembayaran dengan RAG",
+    "description": "Memverifikasi proses pembayaran dengan berbagai metode",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Pilih produk dan proceed to checkout",
+        "expectedResult": "Halaman checkout ditampilkan"
+      },
+      {
+        "step": "Pilih metode pembayaran (Credit Card)",
+        "expectedResult": "Form pembayaran muncul"
+      },
+      {
+        "step": "Masukkan detail kartu kredit",
+        "expectedResult": "Data berhasil diinput"
+      },
+      {
+        "step": "Klik Complete Payment",
+        "expectedResult": "Pembayaran berhasil dan invoice dikirim"
+      }
+    ],
+    "expectedResult": "Pembayaran berhasil dengan metode yang dipilih",
+    "tags": ["payment", "checkout", "rag"],
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk proses pembayaran",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.85,
+    "ragReferences": [
+      {
+        "testCaseId": "existing-payment-test-id",
+        "similarity": 0.82
+      }
+    ]
   }'
 ```
 
@@ -603,3 +721,242 @@ Similarity score berkisar antara 0-1, dimana:
 - **0.7-0.8**: Cukup relevan
 - **0.6-0.7**: Kurang relevan
 - **<0.6**: Tidak relevan
+
+
+curl -X POST http://localhost:3000/testcases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Checkout dengan Multiple Payment Methods",
+    "description": "Test proses checkout dengan berbagai metode pembayaran",
+    "type": "positive",
+    "priority": "high",
+    "steps": [
+      {
+        "step": "Login dan tambah produk ke cart",
+        "expectedResult": "Cart berisi produk"
+      },
+      {
+        "step": "Proceed to checkout",
+        "expectedResult": "Halaman checkout ditampilkan"
+      },
+      {
+        "step": "Pilih payment method (Credit Card)",
+        "expectedResult": "Payment form ditampilkan"
+      },
+      {
+        "step": "Isi detail kartu kredit",
+        "expectedResult": "Data berhasil diinput"
+      },
+      {
+        "step": "Klik Place Order",
+        "expectedResult": "Order berhasil dibuat"
+      }
+    ],
+    "expectedResult": "Checkout berhasil dengan payment method yang dipilih",
+    "tags": ["checkout", "payment", "ecommerce"],
+
+    "aiGenerated": true,
+    "originalPrompt": "Buat test case untuk checkout process di e-commerce dengan multiple payment methods",
+    "aiGenerationMethod": "rag",
+    "aiConfidence": 0.92,
+    "tokenUsage": {
+      "inputTokens": 140,
+      "outputTokens": 380,
+      "totalTokens": 520,
+      "estimatedCost": 0.000260
+    },
+    "ragReferences": [
+      {
+        "testCaseId": "cmg0nd23b00038fg5l1ssnvwe",
+        "similarity": 0.85
+      },
+      {
+        "testCaseId": "cmg0ndtqd00048fg53pf5hkxf",
+        "similarity": 0.78
+      }
+    ]
+
+  }'
+
+    # Step 1: Cari test case serupa
+  curl -X GET "http://localhost:3000/testcases/search?query=login%20authentication&minSimilarity=0.7&limit=5"
+  
+  # Step 2: Pilih salah satu hasil (misal ID: abc-123-def) dan buat test case baru
+  curl -X POST http://localhost:3000/testcases \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Login dengan Social Media",
+      "description": "Test login menggunakan Google/Facebook OAuth",
+      "type": "positive", 
+      "priority": "medium",
+      "steps": [
+        {
+          "step": "Buka halaman login",
+          "expectedResult": "Halaman login dengan opsi social login ditampilkan"
+        },
+        {
+          "step": "Klik Login dengan Google",
+          "expectedResult": "Redirect ke Google OAuth"
+        },
+        {
+          "step": "Authenticate berhasil",
+          "expectedResult": "Redirect kembali dan login berhasil"
+        }
+      ],
+      "expectedResult": "User berhasil login via social media",
+      "tags": ["login", "social-auth", "oauth"],
+      
+      "referenceTo": "abc-123-def",
+      "referenceType": "semantic_search"
+    }'
+
+        curl -X POST http://localhost:3000/testcases \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Checkout dengan Multiple Payment Methods",
+        "description": "Test proses checkout dengan berbagai metode pembayaran",
+        "type": "positive",
+        "priority": "high",
+        "steps": [
+          {
+            "step": "Login dan tambah produk ke cart",
+            "expectedResult": "Cart berisi produk"
+          },
+          {
+            "step": "Proceed to checkout",
+            "expectedResult": "Halaman checkout ditampilkan"
+          },
+          {
+            "step": "Pilih payment method (Credit Card)",
+            "expectedResult": "Payment form ditampilkan"
+          },
+          {
+            "step": "Isi detail kartu kredit",
+            "expectedResult": "Data berhasil diinput"
+          },
+          {
+            "step": "Klik Place Order",
+            "expectedResult": "Order berhasil dibuat"
+          }
+        ],
+        "expectedResult": "Checkout berhasil dengan payment method yang dipilih",
+        "tags": ["checkout", "payment", "ecommerce"],
+        
+        "aiGenerated": true,
+        "originalPrompt": "Buat test case untuk checkout process di e-commerce dengan multiple payment methods",
+        "aiGenerationMethod": "rag",
+        "aiConfidence": 0.92,
+        "tokenUsage": {
+          "inputTokens": 140,
+          "outputTokens": 380,
+          "totalTokens": 520,
+          "estimatedCost": 0.000260
+        },
+        "ragReferences": [
+          {
+            "testCaseId": "xyz-789-abc",
+            "similarity": 0.85
+          },
+          {
+            "testCaseId": "def-456-ghi", 
+            "similarity": 0.78
+          }
+        ]
+      }'
+
+            curl -X POST http://localhost:3000/testcases \
+        -H "Content-Type: application/json" \
+        -d '{
+          "name": "Upload File Gambar dengan Validasi",
+          "description": "Test upload file gambar dengan validasi format dan ukuran",
+          "type": "positive",
+          "priority": "high",
+          "steps": [
+            {
+              "step": "Buka halaman upload file",
+              "expectedResult": "Form upload ditampilkan"
+            },
+            {
+              "step": "Pilih file gambar JPG valid (< 5MB)",
+              "expectedResult": "File berhasil dipilih"
+            },
+            {
+              "step": "Klik upload",
+              "expectedResult": "File berhasil diupload dan ditampilkan"
+            }
+          ],
+          "expectedResult": "File gambar berhasil diupload dengan validasi yang benar",
+          "tags": ["upload", "file", "validation", "image"],
+          
+          "aiGenerated": true,
+          "originalPrompt": "Buat test case untuk fitur upload file gambar dengan validasi format dan ukuran",
+          "aiGenerationMethod": "pure_ai",
+          "aiConfidence": 0.85,
+          "tokenUsage": {
+            "inputTokens": 120,
+            "outputTokens": 350,
+            "totalTokens": 470,
+            "estimatedCost": 0.000235
+          }
+        }'
+
+                # Step 1: Cari test case serupa
+        curl -X GET "http://localhost:3000/testcases/search?query=login%20authentication&minSimilarity=0.7&limit=5"
+        
+        # Step 2: Pilih salah satu hasil (misal ID: abc-123-def) dan buat test case baru
+        curl -X POST http://localhost:3000/testcases \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "Login dengan Social Media",
+            "description": "Test login menggunakan Google/Facebook OAuth",
+            "type": "positive", 
+            "priority": "medium",
+            "steps": [
+              {
+                "step": "Buka halaman login",
+                "expectedResult": "Halaman login dengan opsi social login ditampilkan"
+              },
+              {
+                "step": "Klik Login dengan Google",
+                "expectedResult": "Redirect ke Google OAuth"
+              },
+              {
+                "step": "Authenticate berhasil",
+                "expectedResult": "Redirect kembali dan login berhasil"
+              }
+            ],
+            "expectedResult": "User berhasil login via social media",
+            "tags": ["login", "social-auth", "oauth"],
+            
+            "referenceTo": "abc-123-def",
+            "referenceType": "semantic_search"
+          }'
+
+                    curl -X POST http://localhost:3000/testcases \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Login dengan Email Valid",
+              "description": "Memverifikasi proses login user dengan email dan password yang valid",
+              "type": "positive",
+              "priority": "high",
+              "steps": [
+                {
+                  "step": "Buka halaman login aplikasi",
+                  "expectedResult": "Halaman login ditampilkan dengan form email dan password"
+                },
+                {
+                  "step": "Masukkan email yang valid: user@example.com",
+                  "expectedResult": "Email berhasil diinput"
+                },
+                {
+                  "step": "Masukkan password yang benar",
+                  "expectedResult": "Password berhasil diinput"
+                },
+                {
+                  "step": "Klik tombol Login",
+                  "expectedResult": "User berhasil login dan diarahkan ke dashboard"
+                }
+              ],
+              "expectedResult": "User berhasil login dan dapat mengakses fitur aplikasi",
+              "tags": ["login", "authentication", "positive"]
+            }'
