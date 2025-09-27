@@ -24,10 +24,10 @@ async function bootstrap() {
     transform: true,
     whitelist: true,
     forbidNonWhitelisted: true,
-    exceptionFactory: (errors) => {
-      // This will be caught by our AllExceptionsFilter
-      throw errors;
-    },
+    // exceptionFactory: (errors) => {
+    //   // This will be caught by our AllExceptionsFilter
+    //   throw errors;
+    // },
   }));
 
   // Swagger documentation

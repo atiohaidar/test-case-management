@@ -53,6 +53,32 @@ export interface TestCaseReferencedBy {
   };
 }
 
+export interface DerivedTestCase {
+  id: string;
+  name: string;
+  type: TestCaseType;
+  priority: Priority;
+  createdAt: string;
+  aiGenerated: boolean;
+  referenceInfo: {
+    id: string;
+    referenceType: ReferenceType;
+    similarityScore?: number;
+    createdAt: string;
+  };
+}
+
+
+export interface TokenUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+  estimatedCost?: number;
+  // Alternative format from AI service
+  total_token_count?: number;
+  prompt_token_count?: number;
+  candidates_token_count?: number;
+}
 
 export interface TestCaseDetail {
   id: string;
@@ -68,10 +94,15 @@ export interface TestCaseDetail {
   aiConfidence?: number;
   aiSuggestions?: string;
   aiGenerationMethod?: AIGenerationMethod;
+  tokenUsage?: TokenUsage;
   references?: TestCaseReference[];
   referencedBy?: TestCaseReferencedBy[];
+  derivedTestCases?: DerivedTestCase[];
+  referencesCount: number;
+  derivedCount: number;
   createdAt: string;
   updatedAt: string;
+  referenceId?: string; // Optional reference ID for derived test cases
 }
 
 export interface AIGenerationForm {

@@ -7,9 +7,10 @@ import TestCaseDetail from './components/TestCaseDetail';
 import AIGenerationForm from './components/AIGenerationForm';
 import ManualTestCaseForm from './components/ManualTestCaseForm';
 import CreateChoice from './components/CreateChoice';
+import SemanticSearchCreation from './components/SemanticSearchCreation';
 import { Header } from './components/Layout';
 
-type View = 'list' | 'detail' | 'create-choice' | 'create-manual' | 'create-ai' | 'edit-manual';
+type View = 'list' | 'detail' | 'create-choice' | 'create-manual' | 'create-semantic-search' | 'create-ai' | 'edit-manual';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('list');
@@ -48,8 +49,8 @@ const App: React.FC = () => {
     setView('create-choice');
   };
   
-  const handleSelectCreateMode = (mode: 'ai' | 'manual') => {
-      setView(mode === 'ai' ? 'create-ai' : 'create-manual');
+  const handleSelectCreateMode = (mode: 'manual' | 'semantic_search' | 'ai') => {
+      setView(mode === 'manual' ? 'create-manual' : mode === 'semantic_search' ? 'create-semantic-search' : 'create-ai');
   };
 
   const handleBackToList = () => {
@@ -98,6 +99,8 @@ const App: React.FC = () => {
         return selectedTestCaseId ? <TestCaseDetail testCaseId={selectedTestCaseId} onBack={handleBackToList} onEdit={handleEdit} onDelete={handleDelete} /> : null;
       case 'create-choice':
         return <CreateChoice onSelectMode={handleSelectCreateMode} onBack={handleBackToList} />;
+      case 'create-semantic-search':
+        return <SemanticSearchCreation onBack={handleShowCreateChoice} onTestCaseCreated={handleTestCaseSaved} />;
       case 'create-ai':
         return <AIGenerationForm onBack={handleShowCreateChoice} onTestCaseCreated={handleTestCaseSaved} />;
       case 'create-manual':

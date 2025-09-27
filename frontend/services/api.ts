@@ -24,11 +24,9 @@ export const fetchTestCases = async (): Promise<TestCaseListItem[]> => {
 };
 
 export const fetchTestCaseDetail = async (id: string): Promise<TestCaseDetail> => {
-  console.log(`Fetching detail with references for test case ${id} from API...`);
-  // Using the /with-reference endpoint as requested to get outgoing references directly.
-  // Note: The current API spec for this endpoint doesn't seem to provide 'referencedBy' (incoming references).
-  // The frontend will display what is available from this endpoint.
-  const response = await fetch(`${BASE_URL}/testcases/${id}/with-reference`);
+  console.log(`Fetching full detail with complete references for test case ${id} from API...`);
+  // Using the /full endpoint to get complete reference information including derived test cases
+  const response = await fetch(`${BASE_URL}/testcases/${id}/full`);
   return handleResponse(response);
 };
 

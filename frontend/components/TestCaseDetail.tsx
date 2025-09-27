@@ -123,6 +123,35 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
                 <span className={`flex items-center gap-1 ${confidenceColor}`}><ConfidenceIcon className="w-4 h-4" /> {(testCase.aiConfidence * 100).toFixed(0)}%</span>
               </div>
             )}
+            {testCase.tokenUsage && (
+              <>
+                {/* Handle both token usage formats */}
+                {(testCase.tokenUsage.inputTokens !== undefined || testCase.tokenUsage.prompt_token_count !== undefined) && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-300">Input Tokens:</span>
+                    <span className="text-accent font-mono">{testCase.tokenUsage.inputTokens || testCase.tokenUsage.prompt_token_count || 0}</span>
+                  </div>
+                )}
+                {(testCase.tokenUsage.outputTokens !== undefined || testCase.tokenUsage.candidates_token_count !== undefined) && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-300">Output Tokens:</span>
+                    <span className="text-accent font-mono">{testCase.tokenUsage.outputTokens || testCase.tokenUsage.candidates_token_count || 0}</span>
+                  </div>
+                )}
+                {(testCase.tokenUsage.totalTokens !== undefined || testCase.tokenUsage.total_token_count !== undefined) && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-300">Total Tokens:</span>
+                    <span className="text-accent font-mono">{testCase.tokenUsage.totalTokens || testCase.tokenUsage.total_token_count || 0}</span>
+                  </div>
+                )}
+                {testCase.tokenUsage.estimatedCost && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-300">Est. Cost:</span>
+                    <span className="text-green-400 font-mono">${testCase.tokenUsage.estimatedCost.toFixed(4)}</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           {testCase.originalPrompt && (
             <div>
@@ -156,7 +185,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
-            <ReferenceIcon className="w-5 h-5 text-accent" /> References ({testCase.references?.length || 0})
+            <ReferenceIcon className="w-5 h-5 text-accent" /> References ({testCase.referencesCount || 0})
           </h2>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {testCase.references && testCase.references.length > 0 ? (
@@ -166,7 +195,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
         </div>
         <div>
           <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
-            <ReferencedByIcon className="w-5 h-5 text-accent" /> Referenced By ({testCase.referencedBy?.length || 0})
+            <ReferencedByIcon className="w-5 h-5 text-accent" /> Referenced By ({testCase.derivedCount || 0})
           </h2>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {testCase.referencedBy && testCase.referencedBy.length > 0 ? (
@@ -175,6 +204,37 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
           </div>
         </div>
       </div>
+
+      {/* Derived Test Cases */}
+      {testCase.derivedTestCases && testCase.derivedTestCases.length > 0 && (
+        <div>
+          <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
+            <DerivedIcon className="w-5 h-5 text-accent" /> Derived Test Cases ({testCase.derivedTestCases.length})
+          </h2>
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+            {testCase.derivedTestCases.map(derived => (
+              <div key={derived.id} className="flex justify-between items-center p-3 bg-ui-element rounded-md hover:bg-opacity-80 transition">
+                <div>
+                  <span className="font-semibold text-white">{derived.name}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <TypeBadge type={derived.type} />
+                    <PriorityBadge priority={derived.priority} />
+                    {derived.aiGenerated && <AiIcon className="w-4 h-4 text-accent" title="AI Generated" />}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {derived.referenceInfo.similarityScore && (
+                    <div className="text-xs text-accent font-mono">{(derived.referenceInfo.similarityScore * 100).toFixed(0)}%</div>
+                  )}
+                  <div title={derived.referenceInfo.referenceType} className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full">
+                    <DerivedIcon className="w-3 h-3" /> Derived
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );
