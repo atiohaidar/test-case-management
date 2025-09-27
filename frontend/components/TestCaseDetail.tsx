@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { TestCaseDetail as TestCaseDetailType, TestCaseReference, TestCaseReferencedBy } from '../types';
 import * as api from '../services/api';
 import { Badge, PriorityBadge, TypeBadge } from './Badge';
-import { AiIcon, ManualIcon, RagIcon, DerivedIcon, BackIcon, ReferenceIcon, ReferencedByIcon, ConfidenceIcon, EditIcon, TrashIcon } from './Icons';
+import { AiIcon, ManualIcon, RagIcon, BackIcon, ReferenceIcon, ReferencedByIcon, ConfidenceIcon, EditIcon, TrashIcon } from './Icons';
 
 interface TestCaseDetailProps {
   testCaseId: string;
@@ -20,7 +20,7 @@ const ReferenceItem: React.FC<{ reference: TestCaseReference | TestCaseReference
     switch (reference.referenceType) {
       case 'manual': return <div title="Manual Reference" className="flex items-center gap-1 text-xs bg-gray-600 text-gray-200 px-2 py-0.5 rounded-full"><ManualIcon className="w-3 h-3" /> Manual</div>;
       case 'rag_retrieval': return <div title="RAG Reference" className="flex items-center gap-1 text-xs bg-green-800 text-green-200 px-2 py-0.5 rounded-full"><RagIcon className="w-3 h-3" /> RAG</div>;
-      case 'semantic_search': return <div title="Semantic Search" className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full"><DerivedIcon className="w-3 h-3" /> Semantic Search</div>;
+      case 'semantic_search': return <div title="Semantic Search" className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full"><span className="font-bold">SS</span></div>;
     }
   };
 
@@ -195,46 +195,43 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
         </div>
         <div>
           <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
-            <ReferencedByIcon className="w-5 h-5 text-accent" /> Referenced By ({testCase.derivedCount || 0})
+            <ReferencedByIcon className="w-5 h-5 text-accent" /> Referenced By ({(testCase.referencedBy?.length || 0) + (testCase.derivedTestCases?.length || 0)})
           </h2>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-            {testCase.referencedBy && testCase.referencedBy.length > 0 ? (
-              testCase.referencedBy.map(ref => <ReferenceItem key={ref.id} reference={ref} />)
+            {((testCase.referencedBy || []).concat(
+              (testCase.derivedTestCases || []).map(derived => ({
+                id: derived.referenceInfo.id,
+                sourceId: derived.id,
+                similarityScore: derived.referenceInfo.similarityScore,
+                referenceType: derived.referenceInfo.referenceType as any,
+                source: {
+                  id: derived.id,
+                  name: derived.name,
+                  type: derived.type,
+                  priority: derived.priority,
+                  createdAt: derived.createdAt
+                }
+              }))
+            )).length > 0 ? (
+              ((testCase.referencedBy || []).concat(
+                (testCase.derivedTestCases || []).map(derived => ({
+                  id: derived.referenceInfo.id,
+                  sourceId: derived.id,
+                  similarityScore: derived.referenceInfo.similarityScore,
+                  referenceType: derived.referenceInfo.referenceType as any,
+                  source: {
+                    id: derived.id,
+                    name: derived.name,
+                    type: derived.type,
+                    priority: derived.priority,
+                    createdAt: derived.createdAt
+                  }
+                }))
+              )).map(ref => <ReferenceItem key={ref.id} reference={ref} />)
             ) : <p className="text-body-text text-sm">No other test cases reference this one.</p>}
           </div>
         </div>
       </div>
-
-      {/* Derived Test Cases */}
-      {testCase.derivedTestCases && testCase.derivedTestCases.length > 0 && (
-        <div>
-          <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
-            <DerivedIcon className="w-5 h-5 text-accent" /> Derived Test Cases ({testCase.derivedTestCases.length})
-          </h2>
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-            {testCase.derivedTestCases.map(derived => (
-              <div key={derived.id} className="flex justify-between items-center p-3 bg-ui-element rounded-md hover:bg-opacity-80 transition">
-                <div>
-                  <span className="font-semibold text-white">{derived.name}</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <TypeBadge type={derived.type} />
-                    <PriorityBadge priority={derived.priority} />
-                    {derived.aiGenerated && <AiIcon className="w-4 h-4 text-accent" title="AI Generated" />}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {derived.referenceInfo.similarityScore && (
-                    <div className="text-xs text-accent font-mono">{(derived.referenceInfo.similarityScore * 100).toFixed(0)}%</div>
-                  )}
-                  <div title={derived.referenceInfo.referenceType} className="flex items-center gap-1 text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full">
-                    <DerivedIcon className="w-3 h-3" /> Derived
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
     </div>
   );

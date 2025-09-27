@@ -48,9 +48,9 @@ const App: React.FC = () => {
     setEditingTestCase(null);
     setView('create-choice');
   };
-  
+
   const handleSelectCreateMode = (mode: 'manual' | 'semantic_search' | 'ai') => {
-      setView(mode === 'manual' ? 'create-manual' : mode === 'semantic_search' ? 'create-semantic-search' : 'create-ai');
+    setView(mode === 'manual' ? 'create-manual' : mode === 'semantic_search' ? 'create-semantic-search' : 'create-ai');
   };
 
   const handleBackToList = () => {
@@ -71,17 +71,17 @@ const App: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this test case? This action cannot be undone.')) {
-        try {
-            setLoading(true);
-            await api.deleteTestCase(id);
-            await fetchTestCases();
-            handleBackToList();
-        } catch (err) {
-            setError('Failed to delete test case.');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+      try {
+        setLoading(true);
+        await api.deleteTestCase(id);
+        await fetchTestCases();
+        handleBackToList();
+      } catch (err) {
+        setError('Failed to delete test case.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
