@@ -88,7 +88,7 @@ const TestCaseList: React.FC<TestCaseListProps> = ({ testCases, onSelectTestCase
         </div>
       ) : (
         <div className="text-center py-12 px-6 bg-ui-bg rounded-lg">
-          <h3 className="text-xl font-semibold text-white">No Test Cases Found</h3>
+          <h3 className="text-xl font-semibold text-surface-contrast">No Test Cases Found</h3>
           <p className="mt-2 text-body-text">
             {hasSearchResults ? `No results for "${debouncedSearchTerm}". Try a different search term.` : 'There are no test cases. Why not create one?'}
           </p>

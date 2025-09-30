@@ -27,7 +27,7 @@ const ReferenceItem: React.FC<{ reference: TestCaseReference | TestCaseReference
   return (
     <div className="flex justify-between items-center p-3 bg-ui-element rounded-md hover:bg-opacity-80 transition">
       <div>
-        <span className="font-semibold text-white">{item.name}</span>
+  <span className="font-semibold text-surface-contrast">{item.name}</span>
         <div className="flex items-center gap-2 mt-1">
           <TypeBadge type={item.type} />
           <PriorityBadge priority={item.priority} />
@@ -95,7 +95,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
       {/* Header */}
       <div>
         <div className="flex flex-wrap items-center gap-4 mb-2">
-          <h1 className="text-3xl font-heading text-white">{testCase.name}</h1>
+          <h1 className="text-3xl font-heading text-surface-contrast">{testCase.name}</h1>
           <TypeBadge type={testCase.type} large />
           <PriorityBadge priority={testCase.priority} large />
         </div>
@@ -109,7 +109,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
       {/* AI Metadata */}
       {testCase.aiGenerated && (
         <div className="bg-ui-element/50 border border-accent-border rounded-lg p-4 space-y-3">
-          <h2 className="text-lg font-heading text-white flex items-center gap-2">
+          <h2 className="text-lg font-heading text-surface-contrast flex items-center gap-2">
             <AiIcon className="w-5 h-5 text-accent" /> AI Generation Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -170,7 +170,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
 
       {/* Steps */}
       <div className="space-y-4">
-        <h2 className="text-xl font-heading text-white">Test Steps</h2>
+  <h2 className="text-xl font-heading text-surface-contrast">Test Steps</h2>
         <ol className="list-decimal list-inside space-y-3 border border-accent-border rounded-lg p-4">
           {testCase.steps.map((step, index) => (
             <li key={index} className="text-body-text pl-2 border-l-2 border-accent-border ml-2">
@@ -184,7 +184,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
       {/* References */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
+          <h2 className="text-xl font-heading text-surface-contrast flex items-center gap-2 mb-3">
             <ReferenceIcon className="w-5 h-5 text-accent" /> References ({testCase.referencesCount || 0})
           </h2>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
@@ -194,7 +194,7 @@ const TestCaseDetail: React.FC<TestCaseDetailProps> = ({ testCaseId, onBack, onE
           </div>
         </div>
         <div>
-          <h2 className="text-xl font-heading text-white flex items-center gap-2 mb-3">
+          <h2 className="text-xl font-heading text-surface-contrast flex items-center gap-2 mb-3">
             <ReferencedByIcon className="w-5 h-5 text-accent" /> Referenced By ({(testCase.referencedBy?.length || 0) + (testCase.derivedTestCases?.length || 0)})
           </h2>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">

@@ -1,17 +1,23 @@
 import React from 'react';
-import { SparklesIcon } from './Icons';
+import { SparklesIcon, SunIcon, MoonIcon } from './Icons';
 
 // FIX: Aligned this View type with the one in App.tsx to resolve type conflicts.
 // The previous definition was too narrow ('list' | 'detail' | 'create').
-type View = 'list' | 'detail' | 'create-choice' | 'create-manual' | 'create-ai' | 'edit-manual';
+type View = 'list' | 'detail' | 'create-choice' | 'create-manual' | 'create-semantic-search' | 'create-ai' | 'edit-manual';
 
 interface HeaderProps {
     onShowCreateForm: () => void;
     onViewChange: (view: View) => void;
     currentView: View;
+    theme: 'light' | 'dark';
+    onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onShowCreateForm, onViewChange, currentView }) => {
+export const Header: React.FC<HeaderProps> = ({ onShowCreateForm, onViewChange, currentView, theme, onToggleTheme }) => {
+    const isDark = theme === 'dark';
+    const ThemeIcon = isDark ? SunIcon : MoonIcon;
+    const nextThemeLabel = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+
     return (
         <header className="bg-ui-bg/80 backdrop-blur-sm sticky top-0 z-10 border-b border-accent-border">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,17 +32,30 @@ export const Header: React.FC<HeaderProps> = ({ onShowCreateForm, onViewChange, 
                                 <polyline points="10 9 9 9 8 9"></polyline>
                             </svg>
                         </div>
-                        <h1 className="text-xl font-heading text-white">AI Test Case Manager</h1>
+                        <h1 className="text-xl font-heading text-surface-contrast">AI Test Case Manager</h1>
                     </div>
-                    {currentView === 'list' && (
-                         <button
-                            onClick={onShowCreateForm}
-                            className="flex items-center gap-2 bg-accent text-primary-bg font-bold py-2 px-4 rounded-lg hover:bg-accent-dark transition duration-300"
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            className="theme-toggle"
+                            onClick={onToggleTheme}
+                            title={nextThemeLabel}
+                            aria-label={nextThemeLabel}
+                            aria-pressed={!isDark}
                         >
-                            <SparklesIcon className="w-5 h-5"/>
-                            <span>Create New</span>
+                            <ThemeIcon />
+                            <span className="hidden sm:inline">{isDark ? 'Light mode' : 'Dark mode'}</span>
                         </button>
-                    )}
+                        {currentView === 'list' && (
+                            <button
+                                onClick={onShowCreateForm}
+                                className="flex items-center gap-2 bg-accent text-primary-bg font-bold py-2 px-4 rounded-lg hover:bg-accent-dark transition duration-300"
+                            >
+                                <SparklesIcon className="w-5 h-5"/>
+                                <span>Create New</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>

@@ -124,7 +124,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-heading text-white flex items-center gap-3">
+                <h1 className="text-3xl font-heading text-surface-contrast flex items-center gap-3">
                     <SearchIcon className="w-8 h-8 text-accent" />
                     Create with Semantic Search
                 </h1>
@@ -136,7 +136,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
 
             {/* Search Section */}
             <div className="bg-ui-bg border border-accent-border rounded-lg p-6">
-                <h2 className="text-xl font-heading text-white mb-4">Search for Similar Test Cases</h2>
+                <h2 className="text-xl font-heading text-surface-contrast mb-4">Search for Similar Test Cases</h2>
                 <div className="flex gap-4">
                     <input
                         type="text"
@@ -160,7 +160,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
             {/* Search Results */}
             {searchResults.length > 0 && (
                 <div className="bg-ui-bg border border-accent-border rounded-lg p-6">
-                    <h2 className="text-xl font-heading text-white mb-4">Search Results</h2>
+                    <h2 className="text-xl font-heading text-surface-contrast mb-4">Search Results</h2>
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                         {searchResults.map((result) => (
                             <div
@@ -173,7 +173,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <h3 className="font-semibold text-white">{result.testCase.name}</h3>
+                                        <h3 className="font-semibold text-surface-contrast">{result.testCase.name}</h3>
                                         <p className="text-body-text text-sm mt-1">{result.testCase.description}</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <TypeBadge type={result.testCase.type} />
@@ -195,7 +195,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
             {selectedTestCase && !isEditing && (
                 <div className="bg-ui-bg border border-accent-border rounded-lg p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-heading text-white">Selected Template</h2>
+                        <h2 className="text-xl font-heading text-surface-contrast">Selected Template</h2>
                         <button
                             onClick={handleEdit}
                             className="flex items-center gap-2 bg-accent text-primary-bg font-bold py-2 px-4 rounded-lg hover:bg-accent-dark transition"
@@ -205,7 +205,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
                         </button>
                     </div>
                     <div className="bg-ui-element p-4 rounded-lg">
-                        <h3 className="font-semibold text-white">{selectedTestCase.testCase.name}</h3>
+                        <h3 className="font-semibold text-surface-contrast">{selectedTestCase.testCase.name}</h3>
                         <p className="text-body-text text-sm mt-1">{selectedTestCase.testCase.description}</p>
                         <div className="flex items-center gap-2 mt-2">
                             <TypeBadge type={selectedTestCase.testCase.type} />
@@ -219,7 +219,7 @@ const SemanticSearchCreation: React.FC<SemanticSearchCreationProps> = ({ onBack,
             {/* Edit Form */}
             {isEditing && (
                 <div className="bg-ui-bg border border-accent-border rounded-lg p-6">
-                    <h2 className="text-xl font-heading text-white mb-4">Edit Test Case</h2>
+                    <h2 className="text-xl font-heading text-surface-contrast mb-4">Edit Test Case</h2>
 
                     <div className="space-y-4">
                         <div>

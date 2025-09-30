@@ -31,7 +31,7 @@ const TestCaseListItem: React.FC<TestCaseListItemProps> = ({ testCase, onSelect,
         {/* Left Side: Main Info */}
         <div className="flex-grow">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-heading font-semibold text-white truncate">{testCase.name}</h3>
+            <h3 className="text-lg font-heading font-semibold text-surface-contrast truncate">{testCase.name}</h3>
             <TypeBadge type={testCase.type} />
             <PriorityBadge priority={testCase.priority} />
           </div>

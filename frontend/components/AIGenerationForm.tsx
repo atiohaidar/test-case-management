@@ -156,7 +156,7 @@ const AIGenerationForm: React.FC<AIGenerationFormProps> = ({ onBack, onTestCaseC
   return (
     <div className="max-w-4xl mx-auto bg-ui-bg border border-accent-border rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading text-white flex items-center gap-3">
+        <h1 className="text-2xl font-heading text-surface-contrast flex items-center gap-3">
           <SparklesIcon className="w-7 h-7 text-accent" />
           Generate Test Case with AI
         </h1>
@@ -185,7 +185,7 @@ const AIGenerationForm: React.FC<AIGenerationFormProps> = ({ onBack, onTestCaseC
         <div className="flex items-center justify-between bg-ui-element p-3 rounded-lg">
           <div className="flex items-center gap-2">
             <RagIcon className="w-5 h-5 text-green-400" />
-            <label htmlFor="useRAG" className="font-semibold text-white">
+            <label htmlFor="useRAG" className="font-semibold text-surface-contrast">
               Enable RAG (Retrieval-Augmented Generation)
             </label>
           </div>
@@ -238,7 +238,7 @@ const AIGenerationForm: React.FC<AIGenerationFormProps> = ({ onBack, onTestCaseC
 
       {preview && (
         <div className="border-t border-accent-border pt-6">
-          <h2 className="text-xl font-heading text-white mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-heading text-surface-contrast mb-4 flex items-center gap-2">
             <SparklesIcon className="w-6 h-6 text-accent" />
             AI Generated Preview
           </h2>

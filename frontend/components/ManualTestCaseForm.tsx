@@ -157,7 +157,7 @@ const ManualTestCaseForm: React.FC<ManualTestCaseFormProps> = ({ onSave, onCance
   return (
     <div className="max-w-4xl mx-auto bg-ui-bg border border-accent-border rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading text-white flex items-center gap-3">
+  <h1 className="text-2xl font-heading text-surface-contrast flex items-center gap-3">
           <ManualIcon className="w-7 h-7 text-accent" />
           {isEditing ? 'Edit Test Case' : 'Create Manual Test Case'}
         </h1>
@@ -181,7 +181,7 @@ const ManualTestCaseForm: React.FC<ManualTestCaseFormProps> = ({ onSave, onCance
                     {searchResults.map(result => (
                         <div key={result.testCase.id} className="flex justify-between items-center p-2 rounded-md hover:bg-ui-bg">
                             <div>
-                                <p className="text-sm text-white">{result.testCase.name}</p>
+                                <p className="text-sm text-surface-contrast">{result.testCase.name}</p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <TypeBadge type={result.testCase.type} />
                                   <PriorityBadge priority={result.testCase.priority} />
@@ -228,7 +228,7 @@ const ManualTestCaseForm: React.FC<ManualTestCaseFormProps> = ({ onSave, onCance
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Test Steps</h3>
+          <h3 className="text-lg font-semibold text-surface-contrast mb-2">Test Steps</h3>
           <div className="space-y-3">
             {formData.steps.map((step, index) => (
               <div key={index} className="flex items-start gap-2 p-3 bg-ui-element/50 border border-accent-border rounded-lg">

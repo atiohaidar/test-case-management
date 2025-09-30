@@ -1,0 +1,192 @@
+html.theme-dark {
+  --accent-color: #bfff00;
+  --accent-hover: #a6d900;
+  --accent-contrast: #222222;
+  --accent-soft: rgba(191, 255, 0, 0.12);
+  --accent-soft-strong: rgba(191, 255, 0, 0.3);
+  --accent-border-soft: rgba(191, 255, 0, 0.5);
+}
+
+html.theme-light {
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-contrast: #f8fafc;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-soft-strong: rgba(37, 99, 235, 0.3);
+  --accent-border-soft: rgba(37, 99, 235, 0.4);
+}
+
+html.theme-dark,
+html.theme-dark body {
+  background-color: #222222;
+  color: #AAAAAA;
+  color-scheme: dark;
+}
+
+html.theme-light,
+html.theme-light body {
+  background-color: #f8fafc;
+  color: #1f2937;
+  color-scheme: light;
+}
+
+html.theme-dark body,
+html.theme-light body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+html.theme-light .bg-primary-bg {
+  background-color: #f8fafc !important;
+}
+
+html.theme-light .bg-ui-bg {
+  background-color: #ffffff !important;
+}
+
+html.theme-light .bg-ui-bg\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.theme-light .bg-ui-element {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-light .bg-ui-element\/50 {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+}
+
+html.theme-light .bg-ui-element\/30 {
+  background-color: rgba(241, 245, 249, 0.3) !important;
+}
+
+html.theme-light .border-accent-border {
+  border-color: #d0d7e1 !important;
+}
+
+html.theme-light .border-primary-bg {
+  border-color: #1f2937 !important;
+}
+
+html.theme-light .text-body-text {
+  color: #1f2937 !important;
+}
+
+html.theme-light .placeholder-gray-500::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.theme-light .text-gray-300 {
+  color: #475569 !important;
+}
+
+html.theme-light .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+html.theme-light .text-primary-bg {
+  color: #0f172a !important;
+}
+
+.text-surface-contrast {
+  color: #ffffff;
+}
+
+html.theme-light .text-surface-contrast {
+  color: #0f172a;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+html.theme-dark .theme-toggle {
+  background-color: #333333;
+  color: #f8fafc;
+  border: 1px solid #525252;
+}
+
+html.theme-dark .theme-toggle:hover {
+  background-color: #3f3f3f;
+}
+
+html.theme-light .theme-toggle {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  border: 1px solid #cbd5f5;
+}
+
+html.theme-light .theme-toggle:hover {
+  background-color: #cbd5f5;
+}
+
+.theme-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.bg-accent {
+  background-color: var(--accent-color) !important;
+  color: var(--accent-contrast) !important;
+}
+
+.hover\:bg-accent-dark:hover,
+.hover\:bg-accent-dark:focus {
+  background-color: var(--accent-hover) !important;
+}
+
+.text-accent {
+  color: var(--accent-color) !important;
+}
+
+.text-accent-dark {
+  color: var(--accent-hover) !important;
+}
+
+.hover\:text-accent-dark:hover {
+  color: var(--accent-hover) !important;
+}
+
+.border-accent {
+  border-color: var(--accent-color) !important;
+}
+
+.hover\:border-accent:hover {
+  border-color: var(--accent-color) !important;
+}
+
+.hover\:border-accent\/50:hover {
+  border-color: var(--accent-border-soft) !important;
+}
+
+.bg-accent\/10 {
+  background-color: var(--accent-soft) !important;
+}
+
+.bg-accent\/20 {
+  background-color: var(--accent-soft-strong) !important;
+}
+
+.text-accent .font-mono,
+.font-mono .text-accent {
+  color: inherit;
+}
+
+.peer:checked ~ .peer-checked\:bg-accent,
+.peer:checked + .peer-checked\:bg-accent {
+  background-color: var(--accent-color) !important;
+}
+
+.focus\:ring-accent:focus {
+  --tw-ring-color: var(--accent-color) !important;
+}
+
+.focus\:ring-2:focus {
+  --tw-ring-color: var(--accent-color) !important;
+}

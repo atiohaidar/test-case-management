@@ -10,6 +10,25 @@ import CreateChoice from './components/CreateChoice';
 import SemanticSearchCreation from './components/SemanticSearchCreation';
 import { Header } from './components/Layout';
 
+type Theme = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'test-case-manager-theme';
+
+const resolveInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') {
+    return 'dark';
+  }
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  } catch (error) {
+    return 'dark';
+  }
+};
+
 type View = 'list' | 'detail' | 'create-choice' | 'create-manual' | 'create-semantic-search' | 'create-ai' | 'edit-manual';
 
 const App: React.FC = () => {
@@ -19,6 +38,7 @@ const App: React.FC = () => {
   const [editingTestCase, setEditingTestCase] = useState<TestCaseDetailType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme());
 
   const fetchTestCases = useCallback(async () => {
     try {
@@ -37,6 +57,46 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchTestCases();
   }, [fetchTestCases]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const root = document.documentElement;
+    root.classList.remove('theme-light', 'theme-dark');
+    root.classList.add(`theme-${theme}`);
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) {
+      // Persistence can fail in restricted environments; ignore gracefully.
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === 'light' || stored === 'dark') {
+          return;
+        }
+        setTheme(event.matches ? 'light' : 'dark');
+      } catch (error) {
+        setTheme(event.matches ? 'light' : 'dark');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
+  };
 
   const handleSelectTestCase = (id: string) => {
     setSelectedTestCaseId(id);
@@ -116,7 +176,13 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-primary-bg font-sans">
       {/* FIX: Wrapped `setView` in a lambda to resolve type incompatibility between `React.Dispatch` and a simple function signature. */}
-      <Header onShowCreateForm={handleShowCreateChoice} onViewChange={(v) => setView(v)} currentView={view} />
+      <Header
+        onShowCreateForm={handleShowCreateChoice}
+        onViewChange={(v) => setView(v)}
+        currentView={view}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </main>
