@@ -2,36 +2,72 @@
 
 <div align="center">
 
+![Test Case Management Animation](https://img.shields.io/badge/⚡-Animated%20Scripts-brightgreen?style=for-the-badge)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/atiohaidar/test-case-management)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![NestJS](https://img.shields.io/badge/NestJS-Framework-red?style=for-the-badge&logo=nestjs)](https://nestjs.com/)
+[![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Python](https://img.shields.io/badge/Python-AI%20Service-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 [![AI Powered](https://img.shields.io/badge/AI-Powered-green?style=for-the-badge&logo=openai)](https://github.com/atiohaidar/test-case-management)
 [![RAG](https://img.shields.io/badge/RAG-Enhanced-purple?style=for-the-badge&logo=brain)](https://github.com/atiohaidar/test-case-management)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-orange?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
 
+### 🎯 **Modern Full-Stack Test Case Management with AI & RAG Technology**
+*Complete with React Frontend, NestJS Backend, and Python AI Service*
+
 </div>
 
-> **Aplikasi pintar untuk mengelola dan mencari kasus uji perangkat lunak dengan teknologi AI dan RAG (Retrieval-Augmented Generation)**
+> **🚀 Smart application for managing and searching software test cases with AI and RAG (Retrieval-Augmented Generation) technology**  
+> **Complete full-stack solution with modern React frontend, powerful NestJS backend, and intelligent Python AI service**
+
+![System Architecture](https://img.shields.io/badge/🏗️-Full%20Stack-informational) ![Modern UI](https://img.shields.io/badge/💅-Modern%20UI-success) ![AI Powered](https://img.shields.io/badge/🤖-AI%20Powered-ff69b4)
 
 ---
 
-## 🎯 Apa itu Aplikasi Ini?
+## 🎯 What is this Application?
 
-**Sistem Manajemen Test Case dengan RAG** adalah aplikasi yang membantu tim pengembang software untuk:
+**Test Case Management System with RAG** is a modern full-stack application that helps software development teams:
 
-📝 **Membuat dan menyimpan** skenario pengujian aplikasi  
-🔍 **Mencari dengan cerdas** menggunakan AI semantic search  
-🤖 **Generate test case** dengan AI yang context-aware menggunakan RAG  
-📊 **Mengorganisir** berdasarkan prioritas dan kategori  
-🔗 **Melacak keterkaitan** antar kasus uji dengan sistem referensi  
-⚡ **Menghemat waktu** dengan fitur pencarian semantik dan AI generation  
+### 🎨 **Modern Frontend (React + TypeScript)**
+🌐 **Interactive web interface** with modern React components  
+🎭 **Dark/Light theme** support with system preference detection  
+⚡ **Real-time updates** and responsive design  
+📱 **Mobile-friendly** interface for testing on-the-go  
+🎯 **Intuitive UX** with smooth animations and transitions  
+
+### 🚀 **Powerful Backend (NestJS + Prisma)**
+📝 **Create and store** comprehensive test scenarios  
+🔍 **Smart search** using AI semantic search  
+🤖 **AI-generated test cases** with context-aware RAG technology  
+📊 **Organize** by priority and categories  
+🔗 **Track relationships** between test cases with reference system  
+⚡ **Save time** with semantic search and AI generation features  
+
+### 🧠 **Intelligent AI Service (Python + FastAPI)**
+🔬 **Advanced ML models** for semantic understanding  
+🤖 **Gemini AI integration** for natural language generation  
+📊 **Token usage tracking** and cost monitoring  
+🎯 **RAG implementation** for context-aware test case generation  
 
 ---
 
-## ✨ Fitur Unggulan
+## ✨ Key Features
 
-### � **RAG (Retrieval-Augmented Generation)**
-Teknologi terdepan yang menggabungkan pencarian semantik dengan AI generation untuk menghasilkan test case yang lebih konsisten dan berkualitas.
+### 🎨 **Modern Full-Stack Architecture**
+A complete ecosystem with three powerful services working together:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   React Frontend│    │   NestJS Backend│    │  Python AI      │
+│   (Port 5173)   │◄──►│   (Port 3000)   │◄──►│   (Port 8000)   │
+│   - Modern UI   │    │   - REST API    │    │   - ML Models   │
+│   - TypeScript  │    │   - Prisma ORM  │    │   - Gemini AI   │
+│   - Dark/Light  │    │   - MySQL DB    │    │   - RAG System  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### 🧠 **RAG (Retrieval-Augmented Generation)**
+Advanced AI technology that combines semantic search with generation for superior test case quality.
 
 **Cara Kerja RAG:**
 1. 🔍 Sistem mencari test case yang relevan dengan prompt Anda
@@ -83,89 +119,91 @@ Cari kasus uji hanya dengan mengetik kata kunci dalam bahasa natural. AI akan me
 
 ---
 
-## 🚀 Cara Mulai Menggunakan
+## 🚀 Quick Start Guide
 
-### 💻 **Instalasi Super Mudah**
+### 💻 **Option 1: Super Easy Docker Setup (Recommended)**
 
-1. **Download aplikasi** (pastikan Docker sudah terinstal)
-   ```bash
-   git clone https://github.com/atiohaidar/test-case-management.git
-   cd test-case-management
-   ```
+Get up and running in under 5 minutes with Docker:
 
-2. **Setup Gemini API Key (Opsional - untuk fitur AI)**
-   ```bash
-   # Edit docker-compose.yml dan uncomment + set GEMINI_API_KEY di service 'ai'
-   # GEMINI_API_KEY: "your_gemini_api_key_here"
-   ```
-   
-   > **💡 Tip**: Dapatkan Gemini API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey). Tanpa API key, semua fitur tetap berjalan kecuali fitur AI generation.
-
-3. **Jalankan dengan satu perintah**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Selesai!** Buka browser dan kunjungi:
-   - 🌐 **Aplikasi utama**: http://localhost:3000/api
-   - 📚 **Dokumentasi**: http://localhost:3000/api
-
-### ⚡ **Langsung Pakai Tanpa Ribet**
-Tidak perlu instalasi rumit atau konfigurasi yang membingungkan. Cukup satu perintah dan aplikasi siap digunakan!
-
-### 🛠️ **Development Mode (Tanpa Docker)**
-
-Untuk development atau jika tidak ingin menggunakan Docker, Anda bisa menjalankan setiap service secara terpisah:
-
-#### **Prerequisites:**
-- Node.js 18+ dan npm
-- Python 3.8+
-- MySQL Server berjalan di localhost:3306
-
-#### **Quick Start:**
 ```bash
-# Clone repository
+# 1. Clone the repository
 git clone https://github.com/atiohaidar/test-case-management.git
 cd test-case-management
 
-# Setup environment files
-./main-dev.sh
-# Pilih opsi 6 untuk setup environment files
+# 2. Setup Gemini AI (Optional - for AI features)
+# Edit docker-compose.yml and uncomment + set GEMINI_API_KEY in 'ai' service
+# GEMINI_API_KEY: "your_gemini_api_key_here"
 
-# Edit file konfigurasi:
-# - backend/.env (konfigurasi database)
-# - ai/.env (konfigurasi database + Gemini API key)
+# 3. Start everything with one command
+docker-compose up -d
 
-# Jalankan semua service dengan MySQL
-./main-dev.sh
-# Pilih opsi 5 untuk start semua service + MySQL
+# 4. Open your browser
+# 🌐 Frontend: http://localhost:5173 (Modern React UI)
+# 📚 Backend API: http://localhost:3000/api (NestJS + Swagger)
+# 🤖 AI Service: http://localhost:8000/docs (Python FastAPI)
 ```
 
-#### **Manual Start (Per Service):**
+> **💡 Pro Tip**: Get your free Gemini API key at [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+### ⚡ **Option 2: Enhanced Development Mode**
+
+For developers who want full control with animated scripts:
+
 ```bash
-# Start MySQL Database
-./scripts/start-mysql.sh
+# 1. Clone and enter directory
+git clone https://github.com/atiohaidar/test-case-management.git
+cd test-case-management
 
-# Start AI Service
-./scripts/start-ai.sh
+# 2. Launch interactive development suite
+./main-dev.sh
 
-# Start Backend
-./scripts/start-backend.sh
+# 3. Choose from 11 different startup options:
+#    🌟 Full Stack (All Services) - Complete development experience
+#    🔥 Backend + AI + MySQL - API services + Database  
+#    🎨 Frontend Only - React development
+#    📊 System Information - Check your setup
+#    ... and more!
 ```
 
-#### **Service URLs:**
-- 🤖 **AI Service**: http://localhost:8000 (docs: /docs)
-- 🚀 **Backend API**: http://localhost:3000 (docs: /api)
+### 🎯 **What You Get Instantly**
 
-> **💡 Development Tips**: 
-> - Gunakan `./main-dev.sh` untuk akses mudah ke semua fitur development
-> - MySQL bisa dijalankan via Docker dengan opsi 4 atau 5
-> - Semua script development tersedia di folder `scripts/`
-> - Untuk fitur AI generation, set `GEMINI_API_KEY` di `ai/.env`
+After setup, you'll have access to:
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **🎨 Frontend** | http://localhost:5173 | Modern React UI with dark/light themes |
+| **🚀 Backend API** | http://localhost:3000/api | Full REST API with Swagger documentation |
+| **🤖 AI Service** | http://localhost:8000/docs | ML-powered semantic search and RAG |
+| **🗄️ Database** | localhost:3306 | MySQL with automated schema setup |
+
+### 📱 **First Steps After Installation**
+
+1. **Visit the Frontend** → Create your first test case
+2. **Try AI Generation** → Use RAG-powered test case creation
+3. **Explore API** → Check out the Swagger documentation
+4. **Test Search** → Try semantic search functionality
+
+## 📚 Documentation & Resources
+
+### 📖 **Complete Documentation Suite**
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **📋 [README.md](README.md)** | Project overview and quick start | Everyone |
+| **🚀 [Development Guide](docs/DEVELOPMENT_GUIDE.md)** | Comprehensive developer documentation | Developers |
+| **🔧 [Technical Documentation](docs/Tech.md)** | API reference and architecture | Technical Users |
+| **📊 [Changelog](docs/CHANGELOG.md)** | Version history and updates | Maintainers |
+| **🎯 [Examples](docs/examples.md)** | Usage examples and code samples | Developers |
+| **💡 [Token Usage Guide](docs/token-usage-guide.md)** | AI token management | AI Users |
+
+### 🎮 **Quick Access Links**
+
+- **🌐 Frontend UI**: http://localhost:5173 (Modern React interface)
+- **📚 Backend API Docs**: http://localhost:3000/api (Swagger documentation)
+- **🤖 AI Service Docs**: http://localhost:8000/docs (FastAPI documentation)
+- **🗄️ Database GUI**: Run `npx prisma studio` from backend folder
 
 ---
-
-## 🎮 Cara Menggunakan
 
 ### 1️⃣ **Membuat Test Case Baru**
 ```http
@@ -252,18 +290,65 @@ POST /testcases/derive/{id-test-case-induk}
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## 🛠️ Technology Stack
 
-### 🏗️ **Arsitektur Modern**
-- **Backend**: NestJS (Framework Node.js yang powerful)
-- **Database**: MySQL dengan Prisma (ORM modern)
-- **AI Engine**: Python FastAPI dengan Sentence Transformers
-- **Container**: Docker (mudah deploy dimana saja)
+### 🏗️ **Modern Full-Stack Architecture**
+Built with cutting-edge technologies for performance, scalability, and developer experience:
 
-### 🧠 **Kecerdasan Buatan**
-- **Model AI**: Sentence Transformers untuk pemahaman bahasa
-- **Pencarian Semantik**: Memahami makna, bukan hanya kata kunci
-- **Similarity Ranking**: Hasil diurutkan berdasarkan relevansi
+```
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   🎨 Frontend       │    │   🚀 Backend        │    │   🤖 AI Service     │
+│                     │    │                     │    │                     │
+│   React 19.1.1      │◄──►│   NestJS 10.3.0     │◄──►│   FastAPI 0.115.0   │
+│   TypeScript 5.8    │    │   TypeScript 5.3    │    │   Python 3.12       │
+│   Vite 6.2.0        │    │   Prisma ORM 5.6    │    │   Transformers 3.2   │
+│   Modern UI/UX      │    │   MySQL 8.0         │    │   Gemini AI         │
+│                     │    │   Swagger Docs      │    │   Scikit-learn      │
+│   Port: 5173        │    │   Port: 3000        │    │   Port: 8000        │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+                                     │                          
+                                     ▼                          
+                            ┌─────────────────────┐              
+                            │   🗄️ Database       │              
+                            │                     │              
+                            │   MySQL 8.0         │              
+                            │   Automated Schema  │              
+                            │   Prisma Migrations │              
+                            │   Docker Ready      │              
+                            │                     │              
+                            │   Port: 3306        │              
+                            └─────────────────────┘              
+```
+
+### 🎨 **Frontend Technologies**
+- **React 19.1.1** with modern hooks and concurrent features
+- **TypeScript 5.8** for type safety and better DX
+- **Vite 6.2.0** for lightning-fast development and building
+- **Modern CSS** with dark/light theme support
+- **Responsive Design** for desktop and mobile
+
+### 🚀 **Backend Technologies**
+- **NestJS 10.3.0** - Scalable Node.js framework
+- **Prisma ORM 5.6.0** - Type-safe database access
+- **TypeScript 5.3** - Enhanced developer experience
+- **Swagger/OpenAPI** - Automatic API documentation
+- **MySQL 8.0** - Robust relational database
+- **Docker Support** - Easy deployment and scaling
+
+### 🧠 **AI & ML Technologies**
+- **FastAPI 0.115.0** - High-performance Python web framework
+- **Sentence Transformers** - State-of-the-art text embeddings
+- **Google Gemini API** - Advanced language model for generation
+- **Scikit-learn** - Machine learning utilities
+- **RAG Implementation** - Retrieval-Augmented Generation
+- **Vector Similarity Search** - Semantic search capabilities
+
+### 🐳 **Infrastructure & DevOps**
+- **Docker & Docker Compose** - Containerized development
+- **Automated Scripts** - Enhanced developer experience
+- **Hot Reload** - All services support live reloading
+- **Environment Management** - Separate configs for each service
+- **Health Checks** - Built-in monitoring and diagnostics
 
 ---
 
@@ -761,15 +846,29 @@ Catatan singkat:
 
 <div align="center">
 
-## 🎉 **Selamat Mencoba!** 🎉
+## 🎉 **Ready to Get Started?** 🎉
 
-**Sistem Manajemen Test Case dengan AI**  
-*Dibantu banget sama Github Copilot Agent Mode*
+**Enhanced Test Case Management System v3.0.0**  
+*Now with Animated Scripts & Modern Full-Stack Architecture*
+
+### 🚀 **Choose Your Adventure:**
+
+```bash
+# Quick Docker Setup (5 minutes)
+docker-compose up -d
+
+# Enhanced Development Experience  
+./main-dev.sh
+```
 
 ---
 
-### 🌟 **Jika aplikasi ini membantu, jangan lupa kasih ⭐ di GitHub!** 🌟
+### 🌟 **If this project helps you, please give it a ⭐ on GitHub!** 🌟
 
 [![GitHub stars](https://img.shields.io/github/stars/atiohaidar/test-case-management.svg?style=social&label=Star)](https://github.com/atiohaidar/test-case-management)
+[![GitHub forks](https://img.shields.io/github/forks/atiohaidar/test-case-management.svg?style=social&label=Fork)](https://github.com/atiohaidar/test-case-management/fork)
+[![GitHub watchers](https://img.shields.io/github/watchers/atiohaidar/test-case-management.svg?style=social&label=Watch)](https://github.com/atiohaidar/test-case-management)
+
+**🔥 Features**: RAG AI • Modern UI • Full-Stack • Animated Scripts • Docker Ready
 
 </div>
