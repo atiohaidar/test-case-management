@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: testcase-management
+
+resources:
+  - ../../
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+# Production-specific patches
+patchesStrategicMerge:
+  - ingress-patch.yaml
+  - security-patch.yaml
+
+# Production configuration
+configMapGenerator:
+  - name: prod-config
+    literals:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+
+images:
+  - name: testcase-backend
+    newName: your-registry.com/testcase-backend
+    newTag: v1.0.0
+  - name: testcase-ai
+    newName: your-registry.com/testcase-ai
+    newTag: v1.0.0
+  - name: testcase-frontend
+    newName: your-registry.com/testcase-frontend
+    newTag: v1.0.0
+
+replicas:
+  - name: backend
+    count: 5
+  - name: frontend
+    count: 3
+  - name: ai-service
+    count: 3

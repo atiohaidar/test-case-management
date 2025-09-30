@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: testcase-management
+data:
+  init.sql: |
+    -- Test Case Management Database Initialization
+    -- This script will be automatically executed when MySQL starts
+    
+    USE testcase_management;
+    
+    -- Create additional indexes or configurations if needed
+    -- The main schema will be created by Prisma migrations
+    
+    -- Example: Create a user with specific permissions
+    -- CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'app_password';
+    -- GRANT SELECT, INSERT, UPDATE, DELETE ON testcase_management.* TO 'app_user'@'%';
+    
+    -- Set MySQL configurations for better performance
+    SET GLOBAL innodb_buffer_pool_size = 128M;
+    SET GLOBAL max_connections = 200;
+    
+    -- Ensure proper character set
+    ALTER DATABASE testcase_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
