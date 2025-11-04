@@ -1,0 +1,1257 @@
+{
+	"info": {
+		"_postman_id": "test-case-management-api",
+		"name": "Test Case Management API",
+		"description": "Comprehensive API collection for Test Case Management System with RAG and AI capabilities.\n\nThis collection includes scenarios for:\n- Manual test case creation (without AI)\n- RAG-only (semantic search and reference)\n- Generative AI with RAG (combined approach)\n- Pure Generative AI (without RAG)\n\nBase URL: http://localhost:3000",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "test-case-management"
+	},
+	"item": [
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Basic Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/monitoring/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"monitoring",
+								"health"
+							]
+						},
+						"description": "Check if the backend service is running and healthy"
+					},
+					"response": []
+				},
+				{
+					"name": "Detailed Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/monitoring/health/detailed",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"monitoring",
+								"health",
+								"detailed"
+							]
+						},
+						"description": "Get detailed health information with system metrics"
+					},
+					"response": []
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/monitoring/metrics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"monitoring",
+								"metrics"
+							]
+						},
+						"description": "Get Prometheus metrics in text format"
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/monitoring/ping",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"monitoring",
+								"ping"
+							]
+						},
+						"description": "Simple ping endpoint for load balancer health checks"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for monitoring service health and metrics"
+		},
+		{
+			"name": "1. Manual Test Case Creation (Without AI)",
+			"item": [
+				{
+					"name": "Create Login Test Case - Positive",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.environment.set(\"login_test_case_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Login Berhasil dengan Kredensial Valid\",\n  \"description\": \"Memvalidasi bahwa user dapat login dengan username dan password yang benar\",\n  \"type\": \"positive\",\n  \"priority\": \"high\",\n  \"steps\": [\n    {\n      \"step\": \"Buka halaman login aplikasi\",\n      \"expectedResult\": \"Halaman login ditampilkan dengan form username dan password\"\n    },\n    {\n      \"step\": \"Masukkan username yang valid: testuser@example.com\",\n      \"expectedResult\": \"Username berhasil diinput di field username\"\n    },\n    {\n      \"step\": \"Masukkan password yang valid: Password123!\",\n      \"expectedResult\": \"Password berhasil diinput dan tersembunyi (masked)\"\n    },\n    {\n      \"step\": \"Klik tombol 'Login'\",\n      \"expectedResult\": \"Proses autentikasi dimulai\"\n    }\n  ],\n  \"expectedResult\": \"User berhasil login dan diarahkan ke halaman dashboard. Session token dibuat dan disimpan.\",\n  \"tags\": [\"login\", \"authentication\", \"positive\", \"security\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases"
+							]
+						},
+						"description": "Scenario: Manual creation of a test case without any AI assistance.\n\nThis demonstrates the traditional approach where QA engineers manually create test cases based on requirements."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Login Test Case - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.environment.set(\"login_negative_test_case_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Login Gagal dengan Password Salah\",\n  \"description\": \"Memvalidasi bahwa sistem menolak login dengan password yang salah\",\n  \"type\": \"negative\",\n  \"priority\": \"high\",\n  \"steps\": [\n    {\n      \"step\": \"Buka halaman login aplikasi\",\n      \"expectedResult\": \"Halaman login ditampilkan dengan form username dan password\"\n    },\n    {\n      \"step\": \"Masukkan username yang valid: testuser@example.com\",\n      \"expectedResult\": \"Username berhasil diinput di field username\"\n    },\n    {\n      \"step\": \"Masukkan password yang salah: WrongPassword123\",\n      \"expectedResult\": \"Password berhasil diinput\"\n    },\n    {\n      \"step\": \"Klik tombol 'Login'\",\n      \"expectedResult\": \"Proses autentikasi dimulai\"\n    }\n  ],\n  \"expectedResult\": \"Login ditolak dengan pesan error 'Username atau password salah'. User tetap di halaman login.\",\n  \"tags\": [\"login\", \"authentication\", \"negative\", \"security\", \"validation\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases"
+							]
+						},
+						"description": "Scenario: Manual creation of a negative test case for login validation."
+					},
+					"response": []
+				},
+				{
+					"name": "Create File Upload Test Case",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"file_upload_test_case_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Upload File PDF dengan Validasi Ukuran\",\n  \"description\": \"Memvalidasi fitur upload file PDF dengan batasan ukuran maksimal 5MB\",\n  \"type\": \"functional\",\n  \"priority\": \"medium\",\n  \"steps\": [\n    {\n      \"step\": \"Akses halaman upload dokumen\",\n      \"expectedResult\": \"Halaman upload ditampilkan dengan tombol 'Pilih File'\"\n    },\n    {\n      \"step\": \"Klik tombol 'Pilih File'\",\n      \"expectedResult\": \"Dialog file picker terbuka\"\n    },\n    {\n      \"step\": \"Pilih file PDF dengan ukuran 4.8MB\",\n      \"expectedResult\": \"File terpilih dan nama file ditampilkan\"\n    },\n    {\n      \"step\": \"Klik tombol 'Upload'\",\n      \"expectedResult\": \"Progress bar upload ditampilkan\"\n    }\n  ],\n  \"expectedResult\": \"File berhasil diupload, progress bar mencapai 100%, dan muncul notifikasi 'File berhasil diupload'\",\n  \"tags\": [\"upload\", \"pdf\", \"validation\", \"file-size\", \"functional\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases"
+							]
+						},
+						"description": "Scenario: Manual creation of functional test case for file upload feature."
+					},
+					"response": []
+				}
+			],
+			"description": "Manual test case creation without AI assistance. This is the traditional approach where test cases are created entirely by humans."
+		},
+		{
+			"name": "2. RAG Only (Semantic Search & Reference)",
+			"item": [
+				{
+					"name": "Search Test Cases - Login Related",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/search?query=login authentication&minSimilarity=0.7&limit=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "login authentication"
+								},
+								{
+									"key": "minSimilarity",
+									"value": "0.7"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Scenario: RAG - Semantic search to find similar test cases.\n\nUse case: QA engineer wants to find existing test cases related to login before creating a new one. The semantic search uses RAG to understand the context and find relevant test cases."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Test Cases - Upload File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/search?query=upload file validation&minSimilarity=0.65&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "upload file validation"
+								},
+								{
+									"key": "minSimilarity",
+									"value": "0.65"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Scenario: RAG - Find test cases related to file upload using semantic similarity."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Test Case with Semantic Search Reference",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has reference metadata\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('referenceTo');",
+									"    pm.expect(jsonData.referenceType).to.equal('semantic_search');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Logout User\",\n  \"description\": \"Memvalidasi proses logout user yang sudah login\",\n  \"type\": \"positive\",\n  \"priority\": \"medium\",\n  \"steps\": [\n    {\n      \"step\": \"User sudah dalam keadaan login\",\n      \"expectedResult\": \"Dashboard user ditampilkan\"\n    },\n    {\n      \"step\": \"Klik tombol 'Logout' di menu user\",\n      \"expectedResult\": \"Konfirmasi logout ditampilkan\"\n    },\n    {\n      \"step\": \"Konfirmasi logout\",\n      \"expectedResult\": \"Proses logout dimulai\"\n    }\n  ],\n  \"expectedResult\": \"User berhasil logout, session dihapus, dan diarahkan ke halaman login\",\n  \"tags\": [\"logout\", \"authentication\", \"session\"],\n  \"referenceTo\": \"{{login_test_case_id}}\",\n  \"referenceType\": \"semantic_search\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases"
+							]
+						},
+						"description": "Scenario: RAG - Create a test case based on semantic search result.\n\nUse case: After finding a related login test case through semantic search, create a logout test case that references it. This maintains traceability and context."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Test Case with References",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}/with-reference",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}",
+								"with-reference"
+							]
+						},
+						"description": "Scenario: RAG - Retrieve a test case with its reference information.\n\nThis shows the relationships between test cases established through semantic search."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Full Detail with References",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}/full",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}",
+								"full"
+							]
+						},
+						"description": "Scenario: RAG - Get complete test case details including all incoming and outgoing references.\n\nUse case: Understanding the full context and relationships of a test case."
+					},
+					"response": []
+				},
+				{
+					"name": "Derive Test Case from Existing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Login dengan Remember Me\",\n  \"description\": \"Memvalidasi fitur remember me saat login\",\n  \"type\": \"positive\",\n  \"priority\": \"medium\",\n  \"steps\": [\n    {\n      \"step\": \"Buka halaman login aplikasi\",\n      \"expectedResult\": \"Halaman login ditampilkan dengan form dan checkbox 'Remember Me'\"\n    },\n    {\n      \"step\": \"Masukkan username yang valid\",\n      \"expectedResult\": \"Username berhasil diinput\"\n    },\n    {\n      \"step\": \"Masukkan password yang valid\",\n      \"expectedResult\": \"Password berhasil diinput\"\n    },\n    {\n      \"step\": \"Centang checkbox 'Remember Me'\",\n      \"expectedResult\": \"Checkbox tercentang\"\n    },\n    {\n      \"step\": \"Klik tombol 'Login'\",\n      \"expectedResult\": \"Proses login dimulai\"\n    }\n  ],\n  \"expectedResult\": \"User berhasil login dan session cookie disimpan dengan durasi extended (30 hari)\",\n  \"tags\": [\"login\", \"authentication\", \"remember-me\", \"session\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/derive/{{login_test_case_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"derive",
+								"{{login_test_case_id}}"
+							]
+						},
+						"description": "Scenario: RAG - Create a derived test case from an existing one.\n\nUse case: Creating variations of existing test cases while maintaining the reference to the original."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Manual Reference Between Test Cases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}/reference/{{login_negative_test_case_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}",
+								"reference",
+								"{{login_negative_test_case_id}}"
+							]
+						},
+						"description": "Scenario: RAG - Manually add a reference between two test cases.\n\nUse case: Linking related positive and negative test cases."
+					},
+					"response": []
+				}
+			],
+			"description": "RAG-only scenarios using semantic search and reference management without AI generation. This demonstrates using existing knowledge (Retrieval-Augmented) for test case organization."
+		},
+		{
+			"name": "3. Generative AI with RAG",
+			"item": [
+				{
+					"name": "Generate Test Case with RAG (Preview)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has AI metadata\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.aiGenerated).to.be.true;",
+									"    pm.expect(jsonData.aiGenerationMethod).to.equal('rag');",
+									"    pm.expect(jsonData).to.have.property('ragReferences');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk fitur change password user\",\n  \"context\": \"Aplikasi web dengan sistem autentikasi. User harus login terlebih dahulu sebelum bisa change password.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": true,\n  \"ragSimilarityThreshold\": 0.7,\n  \"maxRAGReferences\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-with-ai"
+							]
+						},
+						"description": "Scenario: AI + RAG - Generate test case using AI with RAG context (preview only, not saved).\n\nUse case: \n1. System searches for similar test cases (login, authentication)\n2. Uses those as context/examples for AI\n3. AI generates new test case following the patterns from existing ones\n4. Result is more consistent and follows best practices from existing test cases\n\nRAG Benefits:\n- Better context awareness\n- Consistent patterns with existing test cases\n- More detailed and realistic steps"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate and Save Test Case with RAG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Test case has RAG metadata\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.aiGenerated).to.be.true;",
+									"    pm.expect(jsonData.aiGenerationMethod).to.equal('rag');",
+									"    pm.expect(jsonData.ragReferences).to.be.an('array');",
+									"    pm.environment.set(\"rag_generated_test_case_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk reset password dengan email verification\",\n  \"context\": \"User lupa password dan perlu reset melalui email. Sistem akan mengirim link reset password ke email yang terdaftar.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": true,\n  \"ragSimilarityThreshold\": 0.65,\n  \"maxRAGReferences\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: AI + RAG - Generate and immediately save test case with RAG enhancement.\n\nHow RAG works here:\n1. System searches for similar test cases (email, authentication, validation)\n2. Retrieves top 5 most relevant test cases\n3. Sends them as context to AI (Gemini)\n4. AI uses these examples to generate better test case\n5. Test case is saved with RAG reference metadata\n\nAdvantages:\n- Follows established patterns\n- More realistic test steps\n- Better coverage based on similar test cases"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Registration Test with RAG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Has token usage information\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tokenUsage');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk user registration dengan validasi email format dan password strength\",\n  \"context\": \"Aplikasi e-commerce yang memerlukan user registration sebelum checkout. Email harus valid dan password minimal 8 karakter dengan kombinasi huruf, angka, dan simbol.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": true,\n  \"ragSimilarityThreshold\": 0.7,\n  \"maxRAGReferences\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: AI + RAG - Generate registration test case.\n\nRAG Enhancement:\n- Finds similar authentication/validation test cases\n- AI learns validation patterns from existing tests\n- Generates comprehensive registration test with proper validation steps"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate API Test with RAG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk API endpoint GET /users/{id} dengan authentication token\",\n  \"context\": \"REST API yang memerlukan Bearer token untuk autentikasi. Endpoint mengembalikan detail user berdasarkan ID.\",\n  \"preferredType\": \"functional\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": true,\n  \"ragSimilarityThreshold\": 0.65,\n  \"maxRAGReferences\": 4\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: AI + RAG - Generate API test case with authentication.\n\nRAG helps by:\n- Finding similar API/authentication test cases\n- Learning proper API testing structure\n- Including headers, authentication, status codes, response validation"
+					},
+					"response": []
+				}
+			],
+			"description": "Generative AI combined with RAG. This is the most powerful approach where AI generates test cases while leveraging existing knowledge from the database for better context and consistency."
+		},
+		{
+			"name": "4. Pure Generative AI (Without RAG)",
+			"item": [
+				{
+					"name": "Generate Test Case - Pure AI (Preview)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has AI metadata\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.aiGenerated).to.be.true;",
+									"    pm.expect(jsonData.aiGenerationMethod).to.equal('pure_ai');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk fitur shopping cart - add to cart\",\n  \"context\": \"E-commerce website dengan fitur shopping cart. User bisa menambahkan produk ke cart dari halaman detail produk.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-with-ai"
+							]
+						},
+						"description": "Scenario: Pure AI - Generate test case using only AI without RAG context.\n\nUse case: When you want completely fresh perspective or testing a new feature with no similar existing test cases.\n\nCharacteristics:\n- No retrieval from existing test cases\n- AI generates based purely on the prompt and general knowledge\n- Good for new features without precedent\n- May lack consistency with existing test patterns"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate and Save - Pure AI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"AI method is pure_ai\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.aiGenerationMethod).to.equal('pure_ai');",
+									"    pm.expect(jsonData.ragReferences).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk notification system - push notification\",\n  \"context\": \"Mobile app dengan fitur push notification. User bisa menerima notifikasi tentang order status, promo, dan update.\",\n  \"preferredType\": \"functional\",\n  \"preferredPriority\": \"medium\",\n  \"useRAG\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: Pure AI - Generate and save test case without RAG.\n\nWhen to use:\n- Testing completely new features\n- No similar test cases exist\n- Want AI's general best practices without bias from existing tests\n\nNote: May need more manual review compared to RAG-enhanced generation."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Payment Test - Pure AI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk payment gateway integration - credit card payment\",\n  \"context\": \"E-commerce checkout process dengan multiple payment methods. Test untuk credit card payment dengan 3D secure verification.\",\n  \"preferredType\": \"functional\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: Pure AI - Generate payment test case.\n\nPure AI is useful here if:\n- First time implementing payment testing\n- Want standard payment testing approach\n- No existing payment test cases to reference"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Negative Test - Pure AI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat negative test case untuk form validation - SQL injection attempt\",\n  \"context\": \"Web application dengan form input. Test untuk memastikan sistem aman dari SQL injection attack.\",\n  \"preferredType\": \"negative\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "Scenario: Pure AI - Generate security test case.\n\nPure AI can be better for security tests because:\n- Needs latest security testing practices\n- Not biased by potentially outdated existing tests\n- AI has broad knowledge of security vulnerabilities"
+					},
+					"response": []
+				}
+			],
+			"description": "Pure Generative AI without RAG. This approach relies solely on the AI's general knowledge and the provided prompt, without retrieving context from existing test cases."
+		},
+		{
+			"name": "5. Test Case Management",
+			"item": [
+				{
+					"name": "Get All Test Cases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases"
+							]
+						},
+						"description": "Retrieve all test cases in the system"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Test Case by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}"
+							]
+						},
+						"description": "Get specific test case by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Test Case",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"priority\": \"high\",\n  \"tags\": [\"login\", \"authentication\", \"positive\", \"security\", \"updated\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}"
+							]
+						},
+						"description": "Update specific fields of a test case"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Test Case",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{file_upload_test_case_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{file_upload_test_case_id}}"
+							]
+						},
+						"description": "Delete a test case by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Derived Test Cases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/testcases/{{login_test_case_id}}/derived",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"{{login_test_case_id}}",
+								"derived"
+							]
+						},
+						"description": "Get all test cases derived from a specific test case"
+					},
+					"response": []
+				}
+			],
+			"description": "Basic CRUD operations for test case management"
+		},
+		{
+			"name": "6. Comparison Scenarios",
+			"item": [
+				{
+					"name": "Compare: Same Prompt - RAG vs Pure AI (Part 1 - RAG)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"comparison_rag_id\", jsonData.id);",
+									"pm.environment.set(\"comparison_rag_name\", jsonData.name);",
+									"pm.environment.set(\"comparison_rag_steps_count\", jsonData.steps.length);",
+									"pm.environment.set(\"comparison_rag_method\", jsonData.aiGenerationMethod);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk user profile update - change email address\",\n  \"context\": \"User yang sudah login dapat mengupdate email address di profile settings. Perlu verifikasi email baru.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": true,\n  \"ragSimilarityThreshold\": 0.7,\n  \"maxRAGReferences\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "COMPARISON TEST - PART 1 (WITH RAG)\n\nGenerate test case with RAG enabled. This will:\n1. Search for similar test cases (profile, email, update, authentication)\n2. Use found test cases as context\n3. Generate test case following existing patterns\n\nExpected benefits:\n- More consistent with existing test style\n- Better structured steps based on similar tests\n- References to related test cases"
+					},
+					"response": []
+				},
+				{
+					"name": "Compare: Same Prompt - RAG vs Pure AI (Part 2 - Pure AI)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"comparison_pure_id\", jsonData.id);",
+									"pm.environment.set(\"comparison_pure_name\", jsonData.name);",
+									"pm.environment.set(\"comparison_pure_steps_count\", jsonData.steps.length);",
+									"pm.environment.set(\"comparison_pure_method\", jsonData.aiGenerationMethod);",
+									"",
+									"console.log(\"=== COMPARISON RESULTS ===\");",
+									"console.log(\"RAG Version:\");",
+									"console.log(\"  - Name: \" + pm.environment.get(\"comparison_rag_name\"));",
+									"console.log(\"  - Steps: \" + pm.environment.get(\"comparison_rag_steps_count\"));",
+									"console.log(\"  - Method: \" + pm.environment.get(\"comparison_rag_method\"));",
+									"console.log(\"\\nPure AI Version:\");",
+									"console.log(\"  - Name: \" + pm.environment.get(\"comparison_pure_name\"));",
+									"console.log(\"  - Steps: \" + pm.environment.get(\"comparison_pure_steps_count\"));",
+									"console.log(\"  - Method: \" + pm.environment.get(\"comparison_pure_method\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prompt\": \"Buat test case untuk user profile update - change email address\",\n  \"context\": \"User yang sudah login dapat mengupdate email address di profile settings. Perlu verifikasi email baru.\",\n  \"preferredType\": \"positive\",\n  \"preferredPriority\": \"high\",\n  \"useRAG\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/testcases/generate-and-save-with-ai",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"testcases",
+								"generate-and-save-with-ai"
+							]
+						},
+						"description": "COMPARISON TEST - PART 2 (WITHOUT RAG)\n\nGenerate test case with Pure AI (no RAG). This will:\n1. NOT search for similar test cases\n2. Generate based purely on prompt and AI's general knowledge\n3. No references to existing test cases\n\nExpected characteristics:\n- More generic approach\n- May have different structure than existing tests\n- Fresh perspective without bias\n\n🔍 Compare the results:\n- Check the Console tab for comparison summary\n- Review both test cases to see differences in:\n  * Level of detail\n  * Step structure\n  * Consistency with existing tests\n  * Completeness\n  * References (RAG will have, Pure AI won't)"
+					},
+					"response": []
+				}
+			],
+			"description": "Comparison scenarios to demonstrate the difference between RAG-enhanced and Pure AI generation.\n\nRun both requests sequentially to compare:\n1. RAG-enhanced generation (with context from existing test cases)\n2. Pure AI generation (without context)\n\nCheck the test results and response bodies to see how RAG improves consistency and quality."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "login_test_case_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "login_negative_test_case_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "file_upload_test_case_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "rag_generated_test_case_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_rag_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_rag_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_rag_steps_count",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_rag_method",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_pure_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_pure_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_pure_steps_count",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comparison_pure_method",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
