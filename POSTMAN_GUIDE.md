@@ -465,12 +465,15 @@ Comparison scenarios log results ke Console:
 
 **Solution:**
 ```bash
-# Make sure backend is running
+# Make sure backend is running (from project root)
 cd backend
 npm run start:dev
 
-# Or using Docker
+# Or using Docker (from project root)
 docker-compose up -d backend
+
+# Verify service is running
+curl http://localhost:3000/monitoring/health
 ```
 
 ### Issue 2: 500 Error on AI Generation
@@ -479,11 +482,26 @@ docker-compose up -d backend
 
 **Solution:**
 - Pastikan AI service running (port 8000)
-- Set GEMINI_API_KEY di environment
+- Set GEMINI_API_KEY di environment variable
 ```bash
+# From project root
 cd ai
 python main.py
+
+# Verify AI service
+curl http://localhost:8000/health
 ```
+
+**Note:** Some AI generation requests may fail without valid GEMINI_API_KEY.
+
+### Issue 5: Security Warning about Credentials
+
+**Warning:** Example requests contain hardcoded credentials
+
+**Note:** Credentials in collection (e.g., testuser@example.com, Password123!) are **example placeholders only**. 
+- For production: Use environment variables
+- For testing: Use your own test credentials
+- Never commit real credentials to version control
 
 ### Issue 3: Empty RAG References
 

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "test-case-management-api",
 		"name": "Test Case Management API",
-		"description": "Comprehensive API collection for Test Case Management System with RAG and AI capabilities.\n\nThis collection includes scenarios for:\n- Manual test case creation (without AI)\n- RAG-only (semantic search and reference)\n- Generative AI with RAG (combined approach)\n- Pure Generative AI (without RAG)\n\nBase URL: http://localhost:3000",
+		"description": "Comprehensive API collection for Test Case Management System with RAG and AI capabilities.\n\nVersion: 1.0.0\nCreated: 2025-11-04\n\nThis collection includes scenarios for:\n- Manual test case creation (without AI)\n- RAG-only (semantic search and reference)\n- Generative AI with RAG (combined approach)\n- Pure Generative AI (without RAG)\n\nBase URL: http://localhost:3000\n\n⚠️ Note: Example credentials in requests are placeholders. Use your own test credentials or environment variables.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "test-case-management"
 	},

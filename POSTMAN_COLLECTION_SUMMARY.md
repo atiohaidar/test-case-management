@@ -6,7 +6,7 @@
 File collection Postman lengkap dengan 40+ request yang terorganisir dalam 7 folder.
 
 ### 2. `POSTMAN_GUIDE.md`
-Panduan lengkap penggunaan collection dalam Bahasa Indonesia.
+Panduan lengkap penggunaan collection dalam Bahasa Indonesia/English.
 
 ### 3. `POSTMAN_COLLECTION_SUMMARY.md` (file ini)
 Ringkasan singkat dalam Bahasa Indonesia.
@@ -294,7 +294,7 @@ Sebelum production, pastikan sudah test:
 
 ## 🎉 Summary
 
-Collection ini menyediakan **40+ requests** yang mencakup:
+Collection ini menyediakan **29 requests** yang mencakup:
 - ✅ 4 skenario test case creation (Manual, RAG, AI+RAG, Pure AI)
 - ✅ Semantic search dan RAG features
 - ✅ Complete CRUD operations
