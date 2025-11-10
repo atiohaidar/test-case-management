@@ -19,6 +19,7 @@ import { GenerateTestCaseWithAIDto, AIGeneratedTestCaseResponseDto } from './dto
 import { TestCaseDto } from './entities/testcase.entity';
 import { TestCaseWithReferenceDto } from './dto/testcase-with-reference.dto';
 import { TestCaseFullDetailDto } from './dto/testcase-full-detail.dto';
+import { BulkCreateTestCaseDto, BulkCreateTestCaseResponseDto } from './dto/bulk-create-testcase.dto';
 
 @ApiTags('testcases')
 @Controller('testcases')
@@ -30,6 +31,20 @@ export class TestCaseController {
   @ApiResponse({ status: 201, description: 'Test case created successfully', type: TestCaseDto })
   async create(@Body() createTestCaseDto: CreateTestCaseDto) {
     return this.testCaseService.create(createTestCaseDto);
+  }
+
+  @Post('bulk')
+  @ApiOperation({ 
+    summary: 'Bulk create test cases with best-effort strategy',
+    description: 'Creates multiple test cases at once. Uses best-effort strategy: saves successful ones and reports errors for failed ones.'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Bulk creation completed (with success/failure details)', 
+    type: BulkCreateTestCaseResponseDto 
+  })
+  async bulkCreate(@Body() bulkCreateDto: BulkCreateTestCaseDto): Promise<BulkCreateTestCaseResponseDto> {
+    return this.testCaseService.bulkCreate(bulkCreateDto.testCases);
   }
 
   @Get()
