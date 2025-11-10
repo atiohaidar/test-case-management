@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTestCaseDto } from '../dto/create-testcase.dto';
 import { UpdateTestCaseDto } from '../dto/update-testcase.dto';
 import { BusinessException, ExternalServiceException } from '../../common/exceptions';
+import { TestCaseCreationResult } from '../dto/bulk-create-testcase.dto';
 
 @Injectable()
 export class TestCaseCrudService {
@@ -120,5 +121,52 @@ export class TestCaseCrudService {
     async exists(id: string): Promise<boolean> {
         const testCase = await this.prisma.testCase.findUnique({ where: { id } });
         return !!testCase;
+    }
+
+    async bulkCreate(
+        testCases: Array<{ dto: CreateTestCaseDto; embedding?: string }>,
+    ): Promise<TestCaseCreationResult[]> {
+        const results: TestCaseCreationResult[] = [];
+
+        for (let i = 0; i < testCases.length; i++) {
+            const { dto, embedding } = testCases[i];
+            try {
+                const testCase = await this.prisma.testCase.create({
+                    data: {
+                        name: dto.name,
+                        description: dto.description,
+                        type: dto.type,
+                        priority: dto.priority,
+                        steps: dto.steps as any,
+                        expectedResult: dto.expectedResult,
+                        tags: dto.tags as any,
+                        embedding: embedding || JSON.stringify([]),
+                        // AI metadata fields
+                        aiGenerated: dto.aiGenerated || false,
+                        originalPrompt: dto.originalPrompt,
+                        aiConfidence: dto.aiConfidence,
+                        aiSuggestions: dto.aiSuggestions,
+                        aiGenerationMethod: dto.aiGenerationMethod,
+                        tokenUsage: dto.tokenUsage,
+                    } as any,
+                });
+
+                // Remove embedding from returned test case
+                const { embedding: _, ...rest } = testCase;
+                results.push({
+                    success: true,
+                    data: rest,
+                    index: i,
+                });
+            } catch (error) {
+                results.push({
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Failed to create test case',
+                    index: i,
+                });
+            }
+        }
+
+        return results;
     }
 }
