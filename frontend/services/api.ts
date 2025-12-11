@@ -1,6 +1,7 @@
 import { TestCaseListItem, TestCaseDetail, AIGenerationForm, AIGeneratedTestCaseResponse, CreateTestCaseDto, UpdateTestCaseDto, SearchResult } from '../types';
 
-const BASE_URL = 'http://127.0.0.1:3000';
+// Use environment variable for API URL, fallback to localhost for development
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000';
 
 // --- LIVE API IMPLEMENTATION ---
 
