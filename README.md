@@ -5,6 +5,7 @@
 ![Test Case Management Animation](https://img.shields.io/badge/⚡-Animated%20Scripts-brightgreen?style=for-the-badge)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/atiohaidar/test-case-management)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
+[![Railway](https://img.shields.io/badge/Railway-Deploy-blueviolet?style=for-the-badge&logo=railway)](https://railway.app)
 [![NestJS](https://img.shields.io/badge/NestJS-Framework-red?style=for-the-badge&logo=nestjs)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Python](https://img.shields.io/badge/Python-AI%20Service-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
@@ -164,6 +165,25 @@ cd test-case-management
 #    📊 System Information - Check your setup
 #    ... and more!
 ```
+
+### ☁️ **Option 3: Railway Deployment (Cloud)**
+
+Deploy to Railway for production-ready cloud hosting with auto-deployment:
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template)
+
+```bash
+# Quick Railway deployment:
+# 1. Connect your GitHub repository to Railway
+# 2. Add MySQL database from Railway plugins
+# 3. Deploy backend, ai-service, and frontend separately
+# 4. Configure environment variables
+
+# For detailed instructions, see:
+# 📖 RAILWAY_DEPLOYMENT.md
+```
+
+> **💡 Railway Tip**: Railway automatically deploys when you push to GitHub. Perfect for production! See [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md) for complete setup guide.
 
 ### 🎯 **What You Get Instantly**
 

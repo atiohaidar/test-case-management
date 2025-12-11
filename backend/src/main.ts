@@ -42,10 +42,12 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
-  console.log('🚀 Backend server running on http://localhost:3000');
-  console.log('📚 API Documentation available at http://localhost:3000/api');
-  console.log('📊 Health check available at http://localhost:3000/monitoring/health');
-  console.log('📈 Metrics available at http://localhost:3000/monitoring/metrics');
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Backend server running on http://localhost:${port}`);
+  console.log(`📚 API Documentation available at http://localhost:${port}/api`);
+  console.log(`📊 Health check available at http://localhost:${port}/monitoring/health`);
+  console.log(`📈 Metrics available at http://localhost:${port}/monitoring/metrics`);
 
   // Graceful shutdown
   const jaegerTracing = app.get(JaegerTracingService);
