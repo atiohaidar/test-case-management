@@ -360,6 +360,11 @@ function renderManualForm() {
                 '<textarea class="form-textarea" name="description" rows="3" required>' + escapeHtml(data.description) + '</textarea>' +
             '</div>' +
             
+            '<div class="form-group">' +
+                '<label class="form-label">Expected Result</label>' +
+                '<textarea class="form-textarea" name="expectedResult" rows="2" placeholder="The final expected result of this test case...">' + escapeHtml(data.expectedResult || '') + '</textarea>' +
+            '</div>' +
+            
             '<div class="steps-container">' +
                 '<h3 class="steps-title">Test Steps</h3>' +
                 '<div id="steps-list" class="steps-list">' + renderStepsEditor(data.steps) + '</div>' +
@@ -487,7 +492,7 @@ async function handleManualSubmit(event) {
         priority: form.querySelector('[name="priority"]').value,
         tags: form.querySelector('[name="tags"]').value.split(',').map(t => t.trim()).filter(Boolean),
         steps: getStepsFromForm(),
-        expectedResult: form.querySelector('[name="description"]').value,
+        expectedResult: form.querySelector('[name="expectedResult"]').value || form.querySelector('[name="description"]').value,
     };
     
     submitBtn.disabled = true;

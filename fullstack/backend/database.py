@@ -428,7 +428,8 @@ class DatabaseConnection:
             """, (ref_id, source_id, target_id, reference_type, similarity_score))
             connection.commit()
         except Error as e:
-            if 'Duplicate entry' in str(e):
+            # MySQL error code 1062 = Duplicate entry
+            if e.errno == 1062:
                 logger.warning(f"Reference already exists: {source_id} -> {target_id}")
             else:
                 logger.error(f"Database insert error: {e}")
