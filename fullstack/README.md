@@ -2,6 +2,8 @@
 
 A unified Python-based fullstack application for managing test cases with AI-powered features. This version uses Flask for the backend and vanilla HTML/CSS/JavaScript for the frontend, providing the same functionality as the main application.
 
+**✨ No Docker required!** Uses SQLite for the database - just run and go!
+
 ## 🏗️ Architecture
 
 ```
@@ -16,7 +18,7 @@ A unified Python-based fullstack application for managing test cases with AI-pow
 │  └─────────────┘  └─────────────┘  └─────────────┘     │
 │                          │                               │
 │                    ┌─────────────┐                       │
-│                    │   MySQL     │                       │
+│                    │   SQLite    │                       │
 │                    │   Database  │                       │
 │                    └─────────────┘                       │
 └─────────────────────────────────────────────────────────┘
@@ -49,8 +51,9 @@ All features from the main application are available:
 ### Prerequisites
 
 - Python 3.9+
-- MySQL 8.0+
 - (Optional) Google Gemini API key for AI features
+
+**No Docker or external database required!** The application uses SQLite which is included with Python.
 
 ### 1. Install Dependencies
 
@@ -59,29 +62,17 @@ cd fullstack/backend
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
+### 2. Configure Environment (Optional)
 
 ```bash
 # Copy example environment file
 cp .env.example .env
 
 # Edit .env with your settings
-# - Database credentials
-# - Gemini API key (optional)
+# - Gemini API key (optional, for AI features)
 ```
 
-### 3. Start MySQL Database
-
-You can use the existing Docker MySQL from the main project:
-
-```bash
-# From project root
-docker-compose up -d mysql
-```
-
-Or set up your own MySQL database and update the `.env` file.
-
-### 4. Run the Application
+### 3. Run the Application
 
 ```bash
 cd fullstack/backend
@@ -90,16 +81,19 @@ python app.py
 
 The application will be available at: **http://localhost:5000**
 
+The SQLite database (`testcase.db`) will be created automatically on first run.
+
 ## 📁 Project Structure
 
 ```
 fullstack/
 ├── backend/
 │   ├── app.py              # Flask application (main entry point)
-│   ├── database.py         # MySQL database operations
+│   ├── database.py         # SQLite database operations
 │   ├── ai_service.py       # Semantic search & embeddings
 │   ├── gemini_service.py   # Google Gemini AI integration
 │   ├── requirements.txt    # Python dependencies
+│   ├── testcase.db         # SQLite database (auto-created)
 │   └── .env.example        # Environment variables template
 │
 └── frontend/
@@ -164,11 +158,7 @@ fullstack/
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DB_HOST` | MySQL host | `localhost` |
-| `DB_PORT` | MySQL port | `3306` |
-| `DB_USERNAME` | Database user | `root` |
-| `DB_PASSWORD` | Database password | `password` |
-| `DB_DATABASE` | Database name | `testcase_management` |
+| `DB_PATH` | SQLite database file path | `testcase.db` |
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `5000` |
 | `GEMINI_API_KEY` | Google Gemini API key | (optional) |
@@ -180,27 +170,26 @@ fullstack/
 |---------|---------------------------|--------------------------|
 | Backend | NestJS (TypeScript) | Flask (Python) |
 | Frontend | React + TypeScript | Vanilla HTML/CSS/JS |
-| Database | Prisma ORM | Direct MySQL connector |
+| Database | MySQL + Prisma ORM | SQLite (built-in) |
 | AI Service | Separate FastAPI service | Integrated in Flask |
 | Build Required | Yes (npm build) | No |
+| Docker Required | Yes | **No** |
 | Deployment | Multiple services | Single service |
 
 ## 📝 Notes
 
-- This fullstack version uses the same MySQL database schema as the main application
-- You can run both applications simultaneously (on different ports)
+- This fullstack version uses its own SQLite database (separate from the main MySQL database)
 - AI features require a valid Google Gemini API key
 - The sentence transformer model downloads automatically on first run (~90MB)
 
 ## 🐛 Troubleshooting
 
-### Database Connection Error
-- Ensure MySQL is running
-- Check database credentials in `.env`
-- Verify the database exists
+### Database Issues
+- The SQLite database is created automatically
+- If you need to reset, just delete `testcase.db` and restart
 
 ### AI Features Not Working
-- Check if `GEMINI_API_KEY` is set
+- Check if `GEMINI_API_KEY` is set in `.env`
 - Verify the API key is valid
 - Check logs for error messages
 
