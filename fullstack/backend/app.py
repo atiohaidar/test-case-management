@@ -201,6 +201,61 @@ def create_testcase():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/testcases/bulk', methods=['POST'])
+def bulk_create_testcases():
+    """Bulk create multiple test cases"""
+    try:
+        data = request.get_json()
+        testcases_data = data.get('testCases', [])
+        
+        if not testcases_data:
+            return jsonify({'error': 'No test cases provided'}), 400
+        
+        # Prepare test cases with IDs and embeddings
+        prepared_testcases = []
+        for tc_data in testcases_data:
+            testcase_id = generate_cuid()
+            
+            # Generate embedding
+            text_for_embedding = f"{tc_data.get('name', '')} {tc_data.get('description', '')} {' '.join(tc_data.get('tags', []))}"
+            embedding = ai_service.generate_embedding_vector(text_for_embedding)
+            
+            prepared_testcases.append({
+                'id': testcase_id,
+                'name': tc_data['name'],
+                'description': tc_data['description'],
+                'type': tc_data.get('type', 'positive'),
+                'priority': tc_data.get('priority', 'medium'),
+                'steps': json.dumps(tc_data.get('steps', [])),
+                'expectedResult': tc_data.get('expectedResult', ''),
+                'tags': json.dumps(tc_data.get('tags', [])),
+                'embedding': json.dumps(embedding),
+                'aiGenerated': tc_data.get('aiGenerated', False),
+                'originalPrompt': tc_data.get('originalPrompt'),
+                'aiConfidence': tc_data.get('aiConfidence'),
+                'aiSuggestions': tc_data.get('aiSuggestions'),
+                'aiGenerationMethod': tc_data.get('aiGenerationMethod'),
+                'tokenUsage': json.dumps(tc_data.get('tokenUsage')) if tc_data.get('tokenUsage') else None,
+            })
+        
+        # Bulk create
+        results = db.bulk_create_testcases(prepared_testcases)
+        
+        # Calculate statistics
+        success_count = sum(1 for r in results if r['success'])
+        failure_count = sum(1 for r in results if not r['success'])
+        
+        return jsonify({
+            'results': results,
+            'total': len(results),
+            'successCount': success_count,
+            'failureCount': failure_count
+        }), 201
+    except Exception as e:
+        logger.error(f"Error bulk creating testcases: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/testcases/<id>', methods=['PATCH'])
 def update_testcase(id):
     """Update a test case"""

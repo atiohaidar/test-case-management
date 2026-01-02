@@ -86,6 +86,10 @@ function navigateTo(view, data) {
             derivedFrom = null;
             renderManualForm();
             break;
+        case 'create-bulk':
+            document.getElementById('view-create-bulk').style.display = 'block';
+            renderBulkForm();
+            break;
         case 'create-semantic-search':
             document.getElementById('view-create-semantic-search').style.display = 'block';
             derivedFrom = null;
@@ -840,6 +844,164 @@ async function handleDelete(id) {
         navigateTo('list');
     } catch (e) {
         alert('Failed to delete: ' + e.message);
+    }
+}
+
+// ==================== BULK CREATE ====================
+function renderBulkForm() {
+    const container = document.getElementById('view-create-bulk');
+    
+    const sampleJson = JSON.stringify([
+        {
+            name: "Login with valid credentials",
+            description: "Test user login with valid email and password",
+            type: "positive",
+            priority: "high",
+            steps: [
+                { step: "Navigate to login page", expectedResult: "Login form is displayed" },
+                { step: "Enter valid email", expectedResult: "Email field accepts input" },
+                { step: "Enter valid password", expectedResult: "Password field accepts input" },
+                { step: "Click login button", expectedResult: "User is redirected to dashboard" }
+            ],
+            expectedResult: "User successfully logged in",
+            tags: ["login", "authentication"]
+        },
+        {
+            name: "Login with invalid password",
+            description: "Test user login with invalid password",
+            type: "negative",
+            priority: "medium",
+            steps: [
+                { step: "Navigate to login page", expectedResult: "Login form is displayed" },
+                { step: "Enter valid email", expectedResult: "Email field accepts input" },
+                { step: "Enter invalid password", expectedResult: "Password field accepts input" },
+                { step: "Click login button", expectedResult: "Error message is displayed" }
+            ],
+            expectedResult: "Login fails with appropriate error message",
+            tags: ["login", "authentication", "error-handling"]
+        }
+    ], null, 2);
+    
+    container.innerHTML = '<div class="form-container animate-fade-in">' +
+        '<div class="form-header">' +
+            '<h1 class="form-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Bulk Create Test Cases</h1>' +
+            '<button class="back-link" onclick="navigateTo(\'create-choice\')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back</button>' +
+        '</div>' +
+        
+        '<p style="color: var(--text-secondary); margin-bottom: 1rem;">Enter test cases in JSON array format. Each test case should have: <code>name</code>, <code>description</code>, <code>type</code> (positive/negative), <code>priority</code> (high/medium/low), <code>steps</code>, <code>expectedResult</code>, and <code>tags</code>.</p>' +
+        
+        '<div class="form-group">' +
+            '<label class="form-label">Test Cases (JSON Array)</label>' +
+            '<textarea class="form-textarea" id="bulk-json" rows="20" style="font-family: monospace; font-size: 0.875rem;">' + escapeHtml(sampleJson) + '</textarea>' +
+        '</div>' +
+        
+        '<div id="bulk-error" class="form-error" style="display: none;"></div>' +
+        '<div id="bulk-results" style="display: none;"></div>' +
+        
+        '<div class="form-actions">' +
+            '<button type="button" class="btn btn-secondary" onclick="loadBulkSample()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Load Sample</button>' +
+            '<button type="button" class="btn btn-primary" id="bulk-submit-btn" onclick="handleBulkSubmit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path></svg>Create All Test Cases</button>' +
+        '</div>' +
+    '</div>';
+}
+
+function loadBulkSample() {
+    const sampleJson = JSON.stringify([
+        {
+            name: "Login with valid credentials",
+            description: "Test user login with valid email and password",
+            type: "positive",
+            priority: "high",
+            steps: [
+                { step: "Navigate to login page", expectedResult: "Login form is displayed" },
+                { step: "Enter valid email", expectedResult: "Email field accepts input" },
+                { step: "Enter valid password", expectedResult: "Password field accepts input" },
+                { step: "Click login button", expectedResult: "User is redirected to dashboard" }
+            ],
+            expectedResult: "User successfully logged in",
+            tags: ["login", "authentication"]
+        },
+        {
+            name: "Login with invalid password",
+            description: "Test user login with invalid password",
+            type: "negative",
+            priority: "medium",
+            steps: [
+                { step: "Navigate to login page", expectedResult: "Login form is displayed" },
+                { step: "Enter valid email", expectedResult: "Email field accepts input" },
+                { step: "Enter invalid password", expectedResult: "Password field accepts input" },
+                { step: "Click login button", expectedResult: "Error message is displayed" }
+            ],
+            expectedResult: "Login fails with appropriate error message",
+            tags: ["login", "authentication", "error-handling"]
+        }
+    ], null, 2);
+    
+    document.getElementById('bulk-json').value = sampleJson;
+}
+
+async function handleBulkSubmit() {
+    const jsonInput = document.getElementById('bulk-json').value;
+    const errorEl = document.getElementById('bulk-error');
+    const resultsEl = document.getElementById('bulk-results');
+    const submitBtn = document.getElementById('bulk-submit-btn');
+    
+    errorEl.style.display = 'none';
+    resultsEl.style.display = 'none';
+    
+    // Parse JSON
+    let testCases;
+    try {
+        testCases = JSON.parse(jsonInput);
+        if (!Array.isArray(testCases)) {
+            throw new Error('Input must be a JSON array');
+        }
+        if (testCases.length === 0) {
+            throw new Error('Array cannot be empty');
+        }
+    } catch (e) {
+        errorEl.textContent = 'Invalid JSON: ' + e.message;
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    // Validate each test case
+    for (let i = 0; i < testCases.length; i++) {
+        const tc = testCases[i];
+        if (!tc.name || !tc.description) {
+            errorEl.textContent = 'Test case at index ' + i + ' is missing required fields (name, description)';
+            errorEl.style.display = 'block';
+            return;
+        }
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner" style="position: static; transform: none;"></div>Creating ' + testCases.length + ' test cases...';
+    
+    try {
+        const result = await apiCall('/testcases/bulk', 'POST', { testCases: testCases });
+        
+        // Show results
+        resultsEl.innerHTML = '<div style="padding: 1rem; background-color: var(--bg-element); border-radius: 0.5rem; margin-top: 1rem;">' +
+            '<h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Bulk Create Results</h3>' +
+            '<p style="color: var(--text-secondary);">Total: <strong>' + result.total + '</strong> | ' +
+            '<span style="color: var(--success);">Success: ' + result.successCount + '</span> | ' +
+            '<span style="color: var(--error);">Failed: ' + result.failureCount + '</span></p>' +
+            (result.failureCount > 0 ? '<div style="margin-top: 0.5rem;">' +
+                result.results.filter(r => !r.success).map(r => 
+                    '<p style="color: var(--error); font-size: 0.875rem;">❌ ' + escapeHtml(r.name || 'Unknown') + ': ' + escapeHtml(r.error) + '</p>'
+                ).join('') +
+            '</div>' : '') +
+            '<button class="btn btn-primary" style="margin-top: 1rem;" onclick="navigateTo(\'list\')">View All Test Cases</button>' +
+        '</div>';
+        resultsEl.style.display = 'block';
+        
+    } catch (error) {
+        errorEl.textContent = 'Failed to create test cases: ' + error.message;
+        errorEl.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path></svg>Create All Test Cases';
     }
 }
 

@@ -94,6 +94,16 @@
                             <h2>Create Manually</h2>
                             <p>Full control to define every detail of your test case from scratch.</p>
                         </button>
+                        <button class="create-option" onclick="navigateTo('create-bulk')">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <h2>Bulk Create</h2>
+                            <p>Create multiple test cases at once using JSON format.</p>
+                        </button>
                         <button class="create-option" onclick="navigateTo('create-semantic-search')">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -115,6 +125,9 @@
 
             <!-- Create Manual View -->
             <div id="view-create-manual" class="view" style="display: none;"></div>
+
+            <!-- Create Bulk View -->
+            <div id="view-create-bulk" class="view" style="display: none;"></div>
 
             <!-- Create Semantic Search View -->
             <div id="view-create-semantic-search" class="view" style="display: none;"></div>

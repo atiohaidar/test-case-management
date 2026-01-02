@@ -225,6 +225,62 @@ class DatabaseConnection:
             cursor.close()
             connection.close()
 
+    def bulk_create_testcases(self, testcases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Bulk create multiple test cases with best-effort strategy"""
+        results = []
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        try:
+            for index, data in enumerate(testcases):
+                try:
+                    cursor.execute("""
+                        INSERT INTO testcases (id, name, description, type, priority, steps, expectedResult, tags, embedding, aiGenerated, originalPrompt, aiConfidence, aiSuggestions, aiGenerationMethod, tokenUsage)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        data['id'],
+                        data['name'],
+                        data['description'],
+                        data.get('type', 'positive'),
+                        data.get('priority', 'medium'),
+                        data.get('steps', '[]'),
+                        data.get('expectedResult', ''),
+                        data.get('tags', '[]'),
+                        data.get('embedding'),
+                        1 if data.get('aiGenerated', False) else 0,
+                        data.get('originalPrompt'),
+                        data.get('aiConfidence'),
+                        data.get('aiSuggestions'),
+                        data.get('aiGenerationMethod'),
+                        data.get('tokenUsage'),
+                    ))
+                    results.append({
+                        'index': index,
+                        'success': True,
+                        'id': data['id'],
+                        'name': data['name'],
+                        'error': None
+                    })
+                except sqlite3.Error as e:
+                    logger.error(f"Error creating testcase at index {index}: {e}")
+                    results.append({
+                        'index': index,
+                        'success': False,
+                        'id': data.get('id'),
+                        'name': data.get('name'),
+                        'error': str(e)
+                    })
+            
+            connection.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Bulk create error: {e}")
+            raise
+        finally:
+            cursor.close()
+            connection.close()
+
+        return results
+
     def get_test_cases_for_embedding(self) -> List[Dict[str, Any]]:
         """Get all test cases that have embeddings for semantic search"""
         connection = self.get_connection()
