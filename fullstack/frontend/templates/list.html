@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Test Cases - AI Test Case Manager{% endblock %}
+{% block nav_list %}active{% endblock %}
+
+{% block content %}
+<div class="view animate-fade-in">
+    <div class="page-header">
+        <h2 class="page-title">Test Cases</h2>
+        <a href="/create" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create New
+        </a>
+    </div>
+    
+    <div class="search-container">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Quick search test cases..." oninput="handleQuickSearch(this.value)">
+        <div id="search-spinner" class="spinner" style="display: none;"></div>
+    </div>
+    
+    <div id="search-info" class="search-info" style="display: none;"></div>
+    <div id="testcase-list" class="testcase-list">
+        <div class="loading">Loading test cases...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/list.js"></script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Create Test Cases - AI Test Case Manager{% endblock %}
+{% block nav_create %}active{% endblock %}
+
+{% block content %}
+<div class="view animate-fade-in">
+    <div class="form-container">
+        <div class="form-header">
+            <h1 class="form-title">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Bulk Create Test Cases
+            </h1>
+            <a href="/create" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back
+            </a>
+        </div>
+        
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Enter test cases in JSON array format. Each test case should have: <code>name</code>, <code>description</code>, <code>type</code> (positive/negative), <code>priority</code> (high/medium/low), <code>steps</code>, <code>expectedResult</code>, and <code>tags</code>.</p>
+        
+        <div class="form-group">
+            <label class="form-label">Test Cases (JSON Array)</label>
+            <textarea class="form-textarea" id="bulk-json" rows="20" style="font-family: monospace; font-size: 0.875rem;"></textarea>
+        </div>
+        
+        <div id="bulk-error" class="form-error" style="display: none;"></div>
+        <div id="bulk-results" style="display: none;"></div>
+        
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="loadBulkSample()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                Load Sample
+            </button>
+            <button type="button" class="btn btn-primary" id="bulk-submit-btn" onclick="handleBulkSubmit()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                </svg>
+                Create All Test Cases
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/create-bulk.js"></script>
+{% endblock %}

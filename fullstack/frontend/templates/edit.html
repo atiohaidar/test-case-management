@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Test Case - AI Test Case Manager{% endblock %}
+{% block nav_list %}active{% endblock %}
+
+{% block content %}
+<div class="view animate-fade-in">
+    <div class="form-container">
+        <div class="form-header">
+            <h1 class="form-title">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit Test Case
+            </h1>
+            <a href="/detail/{{ testcase_id }}" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Cancel
+            </a>
+        </div>
+        
+        <div id="edit-form-container">
+            <div class="loading">Loading test case...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const testCaseId = '{{ testcase_id }}';
+</script>
+<script src="/static/js/edit.js"></script>
+{% endblock %}

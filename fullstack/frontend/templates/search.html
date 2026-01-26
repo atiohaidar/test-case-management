@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Semantic Search - AI Test Case Manager{% endblock %}
+{% block nav_search %}active{% endblock %}
+
+{% block content %}
+<div class="view animate-fade-in">
+    <div class="form-container">
+        <div class="form-header">
+            <h1 class="form-title">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                Semantic Search
+            </h1>
+            <a href="/" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to List
+            </a>
+        </div>
+        
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Search for similar test cases using AI-powered semantic search. Click on a result to use it as a template for a new test case.</p>
+        
+        <div class="form-group">
+            <label class="form-label">Search Query</label>
+            <div style="position: relative;">
+                <input type="text" class="form-input" id="semantic-search-input" placeholder="Type to search for similar test cases..." oninput="handleSemanticSearch(this.value)">
+                <div id="semantic-spinner" class="spinner" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div id="semantic-results"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/search.js"></script>
+{% endblock %}

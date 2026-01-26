@@ -64,8 +64,8 @@ def serialize_testcase(testcase):
         'aiSuggestions': testcase.get('aiSuggestions'),
         'aiGenerationMethod': testcase.get('aiGenerationMethod'),
         'tokenUsage': json.loads(testcase['tokenUsage']) if testcase.get('tokenUsage') and isinstance(testcase['tokenUsage'], str) else testcase.get('tokenUsage'),
-        'createdAt': testcase['createdAt'].isoformat() if testcase.get('createdAt') else None,
-        'updatedAt': testcase['updatedAt'].isoformat() if testcase.get('updatedAt') else None,
+        'createdAt': testcase.get('createdAt'),  # SQLite returns as string already
+        'updatedAt': testcase.get('updatedAt'),  # SQLite returns as string already
     }
     return result
 
@@ -74,8 +74,50 @@ def serialize_testcase(testcase):
 
 @app.route('/')
 def index():
-    """Serve the main HTML page"""
-    return render_template('index.html')
+    """Serve the main list page"""
+    return render_template('list.html')
+
+
+@app.route('/create')
+def create_choice():
+    """Serve the create choice page"""
+    return render_template('create.html')
+
+
+@app.route('/create/manual')
+def create_manual():
+    """Serve the manual create page"""
+    return render_template('create-manual.html')
+
+
+@app.route('/create/bulk')
+def create_bulk():
+    """Serve the bulk create page"""
+    return render_template('create-bulk.html')
+
+
+@app.route('/create/ai')
+def create_ai():
+    """Serve the AI generate page"""
+    return render_template('create-ai.html')
+
+
+@app.route('/search')
+def search_page():
+    """Serve the semantic search page"""
+    return render_template('search.html')
+
+
+@app.route('/detail/<testcase_id>')
+def detail_page(testcase_id):
+    """Serve the detail page"""
+    return render_template('detail.html', testcase_id=testcase_id)
+
+
+@app.route('/edit/<testcase_id>')
+def edit_page(testcase_id):
+    """Serve the edit page"""
+    return render_template('edit.html', testcase_id=testcase_id)
 
 
 # ==================== API ROUTES ====================
