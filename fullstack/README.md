@@ -151,7 +151,7 @@ fullstack/
 ### Theme Toggle
 - Click the sun/moon icon in the header to switch themes
 - Theme preference is saved in localStorage
-- System preference detection on first visit
+- Defaults to light mode on first visit (system preference ignored unless user explicitly selects a different theme)
 
 ### Create Test Cases
 1. **Manual Creation**: Full control over all fields

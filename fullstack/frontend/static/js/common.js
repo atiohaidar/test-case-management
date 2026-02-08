@@ -7,8 +7,9 @@ const API_BASE = '/api';
 // ==================== THEME ====================
 function initTheme() {
     const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = stored || (prefersDark ? 'dark' : 'light');
+    // Default to light mode when user has not chosen a preference.
+    // Stored user preference (localStorage) is still respected.
+    const theme = stored || 'light';
     setTheme(theme);
 }
 

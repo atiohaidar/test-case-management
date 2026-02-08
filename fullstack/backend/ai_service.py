@@ -102,7 +102,21 @@ class AIService:
                 if similarity >= min_similarity:
                     tc = test_cases[idx]
                     
-                    # Convert test case data (reuse logic but cleaner)
+                    # Convert test case data (reuse logic but more defensive)
+                    def _format_dt(v):
+                        """Return a string representation for datetimes; safe if v is already a str."""
+                        if not v:
+                            return None
+                        if isinstance(v, str):
+                            return v
+                        # prefer isoformat if available
+                        if hasattr(v, 'isoformat'):
+                            try:
+                                return v.isoformat()
+                            except Exception:
+                                return str(v)
+                        return str(v)
+
                     test_case_data = {
                         'id': tc['id'],
                         'name': tc['name'],
@@ -112,8 +126,8 @@ class AIService:
                         'steps': json.loads(tc['steps']) if isinstance(tc['steps'], str) else tc['steps'],
                         'expectedResult': tc['expectedResult'],
                         'tags': json.loads(tc['tags']) if isinstance(tc['tags'], str) else tc['tags'],
-                        'createdAt': tc['createdAt'] if isinstance(tc['createdAt'], str) else tc['createdAt'].isoformat() if tc['createdAt'] else None,
-                        'updatedAt': tc['updatedAt'] if isinstance(tc['updatedAt'], str) else tc['updatedAt'].isoformat() if tc['updatedAt'] else None,
+                        'createdAt': _format_dt(tc.get('createdAt')),
+                        'updatedAt': _format_dt(tc.get('updatedAt')),
                         'aiGenerated': bool(tc.get('aiGenerated', False)),
                         'referencesCount': 0,
                     }

@@ -111,7 +111,7 @@ class GeminiService:
                     logger.warning(f"RAG retrieval failed: {rag_error}, falling back to pure AI")
 
             # Initialize Gemini model
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
             # Build the system prompt
             system_prompt = self._build_system_prompt(generation_method == "rag")

@@ -15,7 +15,7 @@ def detailed_gemini_check():
     genai.configure(api_key=api_key)
     
     # Use the latest model that supports usage metadata
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     try:
         # Generate content with return_usage flag
