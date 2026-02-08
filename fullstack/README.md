@@ -72,7 +72,18 @@ cp .env.example .env
 # - Gemini API key (optional, for AI features)
 ```
 
-### 3. Run the Application
+### 3. Seed Initial Data (Optional)
+
+To populate your database with sample test cases and AI embeddings:
+
+```bash
+cd fullstack/backend
+python seed_data.py
+```
+
+*Note: This will download the AI model (~90MB) if it hasn't been downloaded yet.*
+
+### 4. Run the Application
 
 ```bash
 cd fullstack/backend
