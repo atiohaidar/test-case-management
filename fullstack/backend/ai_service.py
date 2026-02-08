@@ -62,7 +62,7 @@ class AIService:
             raise Exception("Failed to generate embedding")
 
     def semantic_search(self, query: str, min_similarity: float = 0.7, limit: int = 10) -> List[Dict[str, Any]]:
-        """Perform semantic search on test cases"""
+        """Perform semantic search on test cases using optimized matrix operations"""
         try:
             # Generate embedding for search query
             query_embedding = self.model.encode(query)
@@ -73,60 +73,61 @@ class AIService:
             if not test_cases:
                 return []
 
-            # Calculate similarities
-            results = []
-
-            for test_case in test_cases:
+            # Prepare embeddings for bulk calculation
+            embeddings = []
+            valid_tc_indices = []
+            
+            for i, tc in enumerate(test_cases):
                 try:
-                    # Parse stored embedding
-                    stored_embedding = json.loads(test_case['embedding'])
-
-                    if not stored_embedding:
-                        continue
-
-                    # Calculate cosine similarity
-                    similarity = cosine_similarity(
-                        [query_embedding],
-                        [stored_embedding]
-                    )[0][0]
-
-                    # Filter by minimum similarity
-                    if similarity >= min_similarity:
-                        # Convert test case data
-                        test_case_data = {
-                            'id': test_case['id'],
-                            'name': test_case['name'],
-                            'description': test_case['description'],
-                            'type': test_case['type'],
-                            'priority': test_case['priority'],
-                            'steps': json.loads(test_case['steps']) if isinstance(test_case['steps'], str) else test_case['steps'],
-                            'expectedResult': test_case['expectedResult'],
-                            'tags': json.loads(test_case['tags']) if isinstance(test_case['tags'], str) else test_case['tags'],
-                            'createdAt': test_case['createdAt'].isoformat() if test_case['createdAt'] else None,
-                            'updatedAt': test_case['updatedAt'].isoformat() if test_case['updatedAt'] else None,
-                            'aiGenerated': False,
-                            'referencesCount': 0,
-                            'referencedByCount': 0,
-                            'ragReferencesCount': 0,
-                            'manualReferencesCount': 0,
-                            'derivedFromCount': 0,
-                        }
-
-                        results.append({
-                            'similarity': float(similarity),
-                            'testCase': test_case_data
-                        })
-
-                except (json.JSONDecodeError, KeyError) as e:
-                    logger.warning(f"Skipping test case {test_case.get('id', 'unknown')} due to invalid embedding: {e}")
+                    stored_embedding = json.loads(tc['embedding'])
+                    if stored_embedding and len(stored_embedding) == self.embedding_dimension:
+                        embeddings.append(stored_embedding)
+                        valid_tc_indices.append(i)
+                except (json.JSONDecodeError, KeyError, TypeError):
                     continue
+
+            if not embeddings:
+                return []
+
+            # Bulk calculate cosine similarity using NumPy
+            # cosine_similarity expects [n_samples_a, n_features] and [n_samples_b, n_features]
+            similarities = cosine_similarity(
+                [query_embedding],
+                embeddings
+            )[0]
+
+            # Filter and format results
+            results = []
+            for idx, similarity in zip(valid_tc_indices, similarities):
+                if similarity >= min_similarity:
+                    tc = test_cases[idx]
+                    
+                    # Convert test case data (reuse logic but cleaner)
+                    test_case_data = {
+                        'id': tc['id'],
+                        'name': tc['name'],
+                        'description': tc['description'],
+                        'type': tc['type'],
+                        'priority': tc['priority'],
+                        'steps': json.loads(tc['steps']) if isinstance(tc['steps'], str) else tc['steps'],
+                        'expectedResult': tc['expectedResult'],
+                        'tags': json.loads(tc['tags']) if isinstance(tc['tags'], str) else tc['tags'],
+                        'createdAt': tc['createdAt'] if isinstance(tc['createdAt'], str) else tc['createdAt'].isoformat() if tc['createdAt'] else None,
+                        'updatedAt': tc['updatedAt'] if isinstance(tc['updatedAt'], str) else tc['updatedAt'].isoformat() if tc['updatedAt'] else None,
+                        'aiGenerated': bool(tc.get('aiGenerated', False)),
+                        'referencesCount': 0,
+                    }
+
+                    results.append({
+                        'similarity': float(similarity),
+                        'testCase': test_case_data
+                    })
 
             # Sort by similarity (highest first) and limit results
             results.sort(key=lambda x: x['similarity'], reverse=True)
             results = results[:limit]
 
             logger.info(f"Found {len(results)} similar test cases for query: {query}")
-
             return results
 
         except Exception as e:

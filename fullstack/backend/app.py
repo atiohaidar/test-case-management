@@ -40,8 +40,12 @@ gemini_service = GeminiService()
 
 
 def generate_cuid():
-    """Generate a CUID-like identifier"""
-    return str(uuid.uuid4()).replace('-', '')[:25]
+    """Generate a sortable unique identifier (timestamp + random hex)"""
+    import time
+    import secrets
+    timestamp = int(time.time() * 1000)
+    random_part = secrets.token_hex(6)
+    return f"tc_{timestamp}_{random_part}"
 
 
 def serialize_testcase(testcase):
@@ -152,6 +156,16 @@ def get_all_testcases():
         return jsonify({'error': str(e)}), 500
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Global error handler for all unhandled exceptions"""
+    logger.error(f"Unhandled exception: {e}", exc_info=True)
+    return jsonify({
+        'error': 'An internal server error occurred',
+        'message': str(e) if app.debug else 'Please contact administrator'
+    }), 500
+
+
 @app.route('/api/testcases/<id>', methods=['GET'])
 def get_testcase(id):
     """Get a single test case by ID"""
@@ -161,8 +175,7 @@ def get_testcase(id):
             return jsonify({'error': 'Test case not found'}), 404
         return jsonify(serialize_testcase(testcase))
     except Exception as e:
-        logger.error(f"Error getting testcase: {e}")
-        return jsonify({'error': str(e)}), 500
+        return handle_exception(e)
 
 
 @app.route('/api/testcases/<id>/full', methods=['GET'])
